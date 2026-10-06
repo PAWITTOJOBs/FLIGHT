@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>แผนที่วางแผนการบิน</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<style>
+.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-layer{position:absolute;left:0;top:0}
+.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent}
+.leaflet-tile,.leaflet-marker-icon{user-select:none;-webkit-user-drag:none}
+.leaflet-tile{visibility:hidden}.leaflet-tile-loaded{visibility:inherit}
+.leaflet-container img.leaflet-tile,.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}
+.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}
+.leaflet-zoom-animated{transform-origin:0 0}
+.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}
+.leaflet-zoom-anim .leaflet-tile{transition:none}
+.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}
+.leaflet-top{top:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-right{right:0}
+.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}
+.leaflet-right .leaflet-control{float:right}
+.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}
+.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}
+.leaflet-bar{border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.65);overflow:hidden}
+.leaflet-bar a{display:block;width:30px;height:30px;line-height:30px;text-align:center;background:#fff;color:#000;text-decoration:none;border-bottom:1px solid #ccc;font:700 18px/30px sans-serif}
+.leaflet-bar a:last-child{border-bottom:none}
+.leaflet-control-layers{background:#fff;color:#111;border-radius:5px;padding:6px 10px;box-shadow:0 1px 5px rgba(0,0,0,.65);font-size:13px}
+.leaflet-control-layers-toggle{display:none}
+.leaflet-control-layers label{display:block}
+.leaflet-control-scale-line{background:rgba(255,255,255,.8);border:2px solid #777;border-top:none;padding:2px 5px;font-size:11px;color:#333;white-space:nowrap}
+.leaflet-control-attribution{background:rgba(255,255,255,.8);font-size:11px;padding:0 5px;color:#333}
+.leaflet-control-attribution a{color:#0063a6;text-decoration:none}
+.leaflet-interactive{cursor:pointer}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b1722;--panel:#112233;--panel2:#16304a;--line:#2a4560;--text:#e8f0f6;--mute:#8fa8bd;--amber:#f5b335;--cyan:#5cd0e6;--red:#ff7a6b;
+--sans:"IBM Plex Sans Thai","Sarabun",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0;background:var(--ink);color:var(--text);font-family:var(--sans)}
+body{display:flex;flex-direction:row;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#panel{width:360px;flex:none;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto}
+#mapwrap{flex:1;position:relative;min-width:0}
+#map{position:absolute;inset:0;background:#0a1620;cursor:crosshair}
+.leaflet-container{font-family:var(--sans)}
+header{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+h1{font-size:18px;font-weight:600;margin:0 0 10px}
+.search{display:flex;gap:6px}
+input,select,button{font:inherit;color:var(--text)}
+input,select{background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+.search input{flex:1}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer}
+button:hover{border-color:var(--cyan)}
+button.primary{background:var(--amber);border-color:var(--amber);color:#1a1200;font-weight:600}
+.totals{padding:16px 18px;border-bottom:1px solid var(--line)}
+.big{font-family:var(--mono);font-size:38px;font-weight:500;color:var(--amber);line-height:1}
+.big small{font-size:16px;color:var(--mute);margin-left:6px}
+.sub{display:flex;gap:20px;margin-top:12px;font-family:var(--mono);font-size:15px}
+.sub span{display:block;font-family:var(--sans);font-size:12px;color:var(--mute)}
+.units{display:flex;gap:0;margin-top:14px}
+.units button{flex:1;border-radius:0;padding:6px}
+.units button:first-child{border-radius:6px 0 0 6px}.units button:last-child{border-radius:0 6px 6px 0}
+.units button[aria-pressed=true]{background:var(--cyan);border-color:var(--cyan);color:#04202a;font-weight:600}
+.params{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.params label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mute)}
+.params input{font-family:var(--mono);width:100%}
+.legs{padding:10px 18px;flex:1}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-weight:400;color:var(--mute);text-align:right;padding:4px 4px 6px;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 4px;border-top:1px solid var(--line);text-align:right;font-family:var(--mono)}
+td:first-child{font-family:var(--sans)}
+td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border:none}
+.dot{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--amber);color:#1a1200;text-align:center;font:600 12px/20px var(--mono);margin-right:6px}
+.empty{color:var(--mute);font-size:14px;line-height:1.6;padding:8px 0}
+.actions{display:flex;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--line)}
+.actions button{flex:1}
+.note{font-size:12px;color:var(--mute);padding:0 18px 16px;line-height:1.5}
+.pin{width:26px;height:26px;border-radius:50%;background:var(--amber);color:#1a1200;border:2px solid #fff;text-align:center;font:600 13px/22px var(--mono);box-shadow:0 1px 6px rgba(0,0,0,.5)}
+.pin.first{background:var(--cyan)}
+.leglabel{background:rgba(11,23,34,.88);color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:1px 6px;font:500 12px var(--mono);white-space:nowrap;width:auto!important;height:auto!important;transform:translate(-50%,-50%)}
+.apt{background:rgba(11,23,34,.9);color:var(--cyan);border:1px solid var(--cyan);border-radius:4px;padding:1px 5px;font:500 11px var(--mono);white-space:nowrap;transform:translate(-50%,-50%);display:inline-block}
+.provlbl{display:none;color:#fff;font:500 12px var(--sans);text-shadow:0 0 3px #000,0 0 3px #000;white-space:nowrap;transform:translate(-50%,-50%);width:auto!important;height:auto!important;pointer-events:none}
+.z7 .provlbl{display:block}
+#status{position:absolute;left:10px;bottom:10px;z-index:900;background:rgba(11,23,34,.88);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font:12px var(--mono);color:var(--text);max-width:calc(100% - 20px)}
+.pl{font-size:11px;color:var(--mute);font-family:var(--sans)}
+.ap h4{margin:0 0 4px;font-size:14px}.ap div{font-size:12px;line-height:1.5}.ap button{margin-top:6px;background:#f5b335;color:#1a1200;border:none;font-weight:600;padding:5px 10px}
+#windy{position:absolute;right:10px;bottom:44px;width:min(420px,calc(100% - 20px));height:min(340px,55%);z-index:950;background:var(--panel);border:1px solid var(--line);border-radius:8px;display:none;flex-direction:column;overflow:hidden}
+#windy.on{display:flex}
+#windy header{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px}
+#windy header button{padding:2px 8px}
+#windy iframe{flex:1;border:0;width:100%}
+@media (max-width:760px){
+ body{flex-direction:column-reverse}
+ #panel{width:100%;height:46vh;border-right:none;border-top:1px solid var(--line)}
+ #mapwrap{flex:1}
+ .big{font-size:30px}
+}
+</style>
+</head>
+<body>
+<aside id="panel">
+ <header>
+  <h1>แผนที่วางแผนการบิน</h1>
+  <form class="search" id="searchForm">
+   <input id="q" type="search" placeholder="รหัส ICAO (เช่น VTBS) หรือชื่อสถานที่" aria-label="ค้นหาสถานที่">
+   <button type="submit">ค้นหา</button>
+  </form>
+ </header>
+ <section class="totals" aria-live="polite">
+  <div class="big"><span id="tDist">0</span><small id="tUnit">NM</small></div>
+  <div class="sub">
+   <div><span>เวลาบิน</span><b id="tTime">–</b></div>
+   <div><span>เชื้อเพลิง</span><b id="tFuel">–</b></div>
+   <div><span>จำนวนช่วง</span><b id="tLegs">0</b></div>
+  </div>
+  <div class="units" role="group" aria-label="หน่วยระยะทาง">
+   <button data-u="nm" aria-pressed="true">ไมล์ทะเล</button>
+   <button data-u="km" aria-pressed="false">กิโลเมตร</button>
+   <button data-u="mi" aria-pressed="false">ไมล์</button>
+  </div>
+ </section>
+ <section class="params">
+  <label>ความเร็วเดินทาง (knots)<input id="speed" type="number" min="1" value="120"></label>
+  <label>เชื้อเพลิงต่อชั่วโมง<input id="burn" type="number" min="0" value="40"></label>
+ </section>
+ <section class="legs">
+  <div id="legs"></div>
+ </section>
+ <div class="actions">
+  <button id="undo">ย้อนกลับจุดล่าสุด</button>
+  <button id="clear">ล้างเส้นทาง</button>
+  <button id="wBtn" type="button">ลม (Windy)</button>
+ </div>
+ <p class="note">ใช้ประเมินคร่าวๆ เท่านั้น ข้อมูลสนามบินและวงกลม CTR เป็นค่าประมาณ ไม่ใช่ขอบเขตจริงตาม AIP Thailand และไม่รวมลม น่านฟ้า หรือพื้นที่ห้ามบิน ห้ามใช้แทนการวางแผนการบินจริง</p>
+</aside>
+<div id="mapwrap"><div id="map"></div><div id="status">คลิกบนแผนที่เพื่อดูอำเภอ/จังหวัด</div>
+ <div id="windy"><header><span>ลมและสภาพอากาศ (Windy)</span><span><button id="wSync" type="button">ไปที่จุดล่าสุด</button> <button id="wClose" type="button" aria-label="ปิด">✕</button></span></header><iframe id="wFrame" title="Windy" loading="lazy"></iframe></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+(function(){
+ var R_NM=3440.065, rad=Math.PI/180, deg=180/Math.PI;
+ var UF={nm:1,km:1.852,mi:1.150779}, UL={nm:'NM',km:'km',mi:'mi'};
+ var unit='nm', pts=[];
+
+ var sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Imagery © Esri, Maxar, Earthstar Geographics'});
+ var osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'});
+ var topo=L.tileLayer('https://tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap, OpenStreetMap contributors'});
+ var map=L.map('map',{center:[13.5,101],zoom:6,layers:[sat],worldCopyJump:true,zoomControl:true});
+ var provPane=map.createPane('prov');provPane.style.zIndex=350;provPane.style.pointerEvents='none';
+ var provLayer=L.layerGroup().addTo(map);
+ var provURLs=['https://cdn.jsdelivr.net/gh/chingchai/OpenGISData-Thailand/provinces.geojson','https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/provinces.geojson','https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/main/provinces.geojson'];
+ function loadProv(i){
+  if(i>=provURLs.length){console.warn('โหลดเส้นแบ่งจังหวัดไม่สำเร็จ');return}
+  fetch(provURLs[i]).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})
+   .then(function(g){
+    L.geoJSON(g,{pane:'prov',renderer:L.canvas({pane:'prov'}),interactive:false,style:{color:'#ffffff',weight:1,opacity:.75,fill:false}}).addTo(provLayer);
+    (g.features||[]).forEach(function(f){
+     var pr=f.properties||{},nm=pr.pro_th||pr.PROV_NAMT||pr.prov_th||pr.name_th||pr.NAME_1||'';
+     if(!nm)return;
+     var c=L.geoJSON(f).getBounds().getCenter();
+     L.marker(c,{interactive:false,icon:L.divIcon({className:'provlbl',html:esc(nm)})}).addTo(provLayer);
+    });
+   })
+   .catch(function(){loadProv(i+1)});
+ }
+ loadProv(0);
+ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+ // [ICAO, IATA, ชื่อ, จังหวัด, lat, lng, ความสูง ft, ทางวิ่ง m, รัศมี CTR NM] — ค่าประมาณ ต้องตรวจสอบกับ AIP Thailand
+ var AP=[
+ ['VTBS','BKK','สุวรรณภูมิ','สมุทรปราการ',13.6811,100.7472,5,4000,10],
+ ['VTBD','DMK','ดอนเมือง','กรุงเทพฯ',13.9126,100.6068,9,3700,8],
+ ['VTBU','UTP','อู่ตะเภา','ระยอง',12.6799,101.0050,42,3505,8],
+ ['VTSP','HKT','ภูเก็ต','ภูเก็ต',8.1132,98.3169,82,3000,8],
+ ['VTSG','KBV','กระบี่','กระบี่',8.0990,98.9862,17,3000,5],
+ ['VTSS','HDY','หาดใหญ่','สงขลา',6.9332,100.3929,90,3000,8],
+ ['VTSM','USM','สมุย','สุราษฎร์ธานี',9.5478,100.0623,53,2000,5],
+ ['VTCC','CNX','เชียงใหม่','เชียงใหม่',18.7668,98.9626,1036,3100,8],
+ ['VTCT','CEI','แม่ฟ้าหลวง เชียงราย','เชียงราย',19.9523,99.8829,1280,3000,5],
+ ['VTPP','PHS','พิษณุโลก','พิษณุโลก',16.7829,100.2791,154,3000,5],
+ ['VTUD','UTH','อุดรธานี','อุดรธานี',17.3864,102.7882,579,3050,5],
+ ['VTUK','KKC','ขอนแก่น','ขอนแก่น',16.4666,102.7836,670,3000,5],
+ ['VTUU','UBP','อุบลราชธานี','อุบลราชธานี',15.2513,104.8703,406,3000,5],
+ ['VTST','TST','ตรัง','ตรัง',7.5087,99.6166,80,2500,5]];
+ var aptLayer=L.layerGroup().addTo(map), ctrLayer=L.layerGroup().addTo(map), APX={};
+ AP.forEach(function(a){
+  APX[a[0]]=a;
+  L.circle([a[4],a[5]],{radius:a[8]*1852,color:'#5cd0e6',weight:1.5,dashArray:'6 5',fillOpacity:.07,interactive:false}).addTo(ctrLayer);
+  var m=L.marker([a[4],a[5]],{icon:L.divIcon({className:'',html:'<span class="apt">✈ '+a[0]+'</span>',iconSize:[0,0]})}).addTo(aptLayer);
+  m.bindPopup('<div class="ap"><h4>'+a[0]+' / '+a[1]+'</h4><div>'+esc(a[2])+' จ.'+esc(a[3])+'<br>ความสูงสนามบิน ~'+a[6]+' ft<br>ทางวิ่งหลัก ~'+a[7]+' ม.<br>CTR (วงกลมประมาณ) รัศมี ~'+a[8]+' NM</div><button type="button">เพิ่มเป็นจุดบิน</button></div>');
+  m.on('popupopen',function(e){e.popup.getElement().querySelector('button').onclick=function(){addPt(a[4],a[5],a[0]);map.closePopup()}});
+ });
+ var st=document.getElementById('status'),lastPlace='';
+ map.on('mousemove',function(e){var l=e.latlng.wrap();st.textContent=l.lat.toFixed(4)+', '+l.lng.toFixed(4)+(lastPlace?'  |  '+lastPlace:'')});
+ map.on('zoomend',function(){map.getContainer().classList.toggle('z7',map.getZoom()>=7)});
+ function geocode(p){
+  fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&accept-language=th&lat='+p.lat+'&lon='+p.lng)
+   .then(function(r){return r.json()}).then(function(j){
+    var a=j.address||{},d=a.county||a.city_district||a.district||a.town||a.city||'',pv=a.state||a.province||'';
+    p.place=[d,pv].filter(Boolean).join(' ');lastPlace=p.place;drawLines();
+   }).catch(function(){});
+ }
+ function addPt(lat,lng,name){var p={lat:lat,lng:lng,name:name||''};pts.push(p);refresh();geocode(p)}
+ L.control.layers({'ภาพดาวเทียม':sat,'แผนที่ถนน':osm,'ภูมิประเทศ':topo},{'เส้นแบ่งจังหวัดและชื่อ':provLayer,'สนามบิน (ICAO)':aptLayer,'เขต CTR (ประมาณ)':ctrLayer}).addTo(map);
+ L.control.scale({imperial:false,metric:true}).addTo(map);
+ var lineLayer=L.layerGroup().addTo(map), markerLayer=L.layerGroup().addTo(map);
+
+ function dist(a,b){
+  var p1=a.lat*rad,p2=b.lat*rad,dl=(b.lng-a.lng)*rad,dp=p2-p1;
+  var h=Math.sin(dp/2)*Math.sin(dp/2)+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2);
+  return 2*R_NM*Math.asin(Math.min(1,Math.sqrt(h)));
+ }
+ function course(a,b){
+  var p1=a.lat*rad,p2=b.lat*rad,dl=(b.lng-a.lng)*rad;
+  var y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
+  return (Math.atan2(y,x)*deg+360)%360;
+ }
+ function arc(a,b){
+  var d=dist(a,b)/R_NM, out=[], n=Math.max(2,Math.ceil(d*deg/2));
+  var p1=a.lat*rad,l1=a.lng*rad,p2=b.lat*rad,l2=b.lng*rad;
+  var prev=a.lng;
+  for(var i=0;i<=n;i++){
+   var f=i/n, lat, lng;
+   if(d<1e-9){lat=a.lat;lng=a.lng}
+   else{
+    var A=Math.sin((1-f)*d)/Math.sin(d),B=Math.sin(f*d)/Math.sin(d);
+    var x=A*Math.cos(p1)*Math.cos(l1)+B*Math.cos(p2)*Math.cos(l2);
+    var y=A*Math.cos(p1)*Math.sin(l1)+B*Math.cos(p2)*Math.sin(l2);
+    var z=A*Math.sin(p1)+B*Math.sin(p2);
+    lat=Math.atan2(z,Math.sqrt(x*x+y*y))*deg; lng=Math.atan2(y,x)*deg;
+   }
+   while(lng-prev>180)lng-=360;
+   while(lng-prev<-180)lng+=360;
+   prev=lng; out.push([lat,lng]);
+  }
+  return out;
+ }
+ function fmtT(h){
+  if(!isFinite(h))return '–';
+  var m=Math.round(h*60),hh=Math.floor(m/60),mm=m%60;
+  return hh+' ชม. '+(mm<10?'0':'')+mm+' น.';
+ }
+ function fmtD(nm){var v=nm*UF[unit]; return v>=100?v.toFixed(0):v.toFixed(1);}
+ function num(id){var v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0}
+
+ function drawLines(){
+  lineLayer.clearLayers();
+  var total=0,legs=[],unwrap=0;
+  for(var i=1;i<pts.length;i++){
+   var a=pts[i-1],b=pts[i],d=dist(a,b),c=course(a,b);
+   total+=d; legs.push({d:d,c:c});
+   var path=arc(a,b);
+   L.polyline(path,{color:'#f5b335',weight:3,opacity:.95,interactive:false}).addTo(lineLayer);
+   var mid=path[Math.floor(path.length/2)];
+   L.marker(mid,{interactive:false,icon:L.divIcon({className:'leglabel',html:fmtD(d)+' '+UL[unit]})}).addTo(lineLayer);
+  }
+  var spd=num('speed'),burn=num('burn'),hrs=spd>0?total/spd:NaN;
+  document.getElementById('tDist').textContent=fmtD(total);
+  document.getElementById('tUnit').textContent=UL[unit];
+  document.getElementById('tTime').textContent=pts.length>1?fmtT(hrs):'–';
+  document.getElementById('tFuel').textContent=(pts.length>1&&isFinite(hrs))?(hrs*burn).toFixed(0):'–';
+  document.getElementById('tLegs').textContent=legs.length;
+  var el=document.getElementById('legs');
+  if(!pts.length){el.innerHTML='<p class="empty">คลิกบนแผนที่เพื่อวางจุดแรก แล้วคลิกต่อไปเรื่อยๆ เพื่อสร้างเส้นทาง ลากหมุดเพื่อย้ายจุดได้</p>';return}
+  var h='<table><thead><tr><th>จุด</th><th>ระยะ</th><th>ทิศ</th><th>เวลา</th><th></th></tr></thead><tbody>';
+  pts.forEach(function(p,i){
+   var lg=legs[i-1];
+   h+='<tr><td><span class="dot">'+(i+1)+'</span>'+(p.name?'<b>'+esc(p.name)+'</b>':(i===0?'ต้นทาง':''))+(p.place?'<div class="pl">'+esc(p.place)+'</div>':'')+'</td>'+
+    '<td>'+(lg?fmtD(lg.d):'')+'</td>'+
+    '<td>'+(lg?('000'+Math.round(lg.c)%360).slice(-3)+'°':'')+'</td>'+
+    '<td>'+(lg&&spd>0?fmtT(lg.d/spd).replace(' ชม. ',':').replace(' น.',''):'')+'</td>'+
+    '<td><button data-del="'+i+'" aria-label="ลบจุด '+(i+1)+'">✕</button></td></tr>';
+  });
+  el.innerHTML=h+'</tbody></table>';
+ }
+ function drawMarkers(){
+  markerLayer.clearLayers();
+  pts.forEach(function(p,i){
+   var m=L.marker([p.lat,p.lng],{draggable:true,icon:L.divIcon({className:'',html:'<div class="pin'+(i===0?' first':'')+'">'+(i+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13]})});
+   m.on('drag',function(e){var ll=e.target.getLatLng();p.lat=ll.lat;p.lng=ll.lng;drawLines()});
+   m.on('dragend',function(e){var ll=e.target.getLatLng().wrap();p.lat=ll.lat;p.lng=ll.lng;p.name='';p.place='';drawLines();geocode(p)});
+   m.addTo(markerLayer);
+  });
+ }
+ function refresh(){drawMarkers();drawLines()}
+
+ map.on('click',function(e){var ll=e.latlng.wrap();addPt(ll.lat,ll.lng,'')});
+ function openWindy(){
+  var p=pts.length?pts[pts.length-1]:null, c=p?{lat:p.lat,lng:p.lng}:map.getCenter().wrap(), z=Math.max(5,Math.min(map.getZoom(),9));
+  document.getElementById('wFrame').src='https://embed.windy.com/embed2.html?lat='+c.lat.toFixed(3)+'&lon='+c.lng.toFixed(3)+'&detailLat='+c.lat.toFixed(3)+'&detailLon='+c.lng.toFixed(3)+'&zoom='+z+'&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now&type=map&location=coordinates&metricWind=kt&metricTemp=%C2%B0C&radarRange=-1';
+  document.getElementById('windy').classList.add('on');
+ }
+ document.getElementById('wBtn').onclick=openWindy;
+ document.getElementById('wSync').onclick=openWindy;
+ document.getElementById('wClose').onclick=function(){document.getElementById('windy').classList.remove('on');document.getElementById('wFrame').removeAttribute('src')};
+ document.getElementById('undo').onclick=function(){pts.pop();refresh()};
+ document.getElementById('clear').onclick=function(){pts=[];refresh()};
+ document.getElementById('legs').addEventListener('click',function(e){
+  var t=e.target.closest('[data-del]');if(!t)return;
+  pts.splice(parseInt(t.getAttribute('data-del'),10),1);refresh();
+ });
+ document.querySelectorAll('.units button').forEach(function(b){
+  b.onclick=function(){
+   unit=b.getAttribute('data-u');
+   document.querySelectorAll('.units button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+   drawLines();
+  };
+ });
+ ['speed','burn'].forEach(function(id){document.getElementById(id).addEventListener('input',drawLines)});
+ document.getElementById('searchForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var q=document.getElementById('q').value.trim();if(!q)return;
+  var ap=APX[q.toUpperCase()];
+  if(ap){map.flyTo([ap[4],ap[5]],11);setTimeout(function(){map.openPopup(L.popup().setLatLng([ap[4],ap[5]]).setContent('<b>'+ap[0]+'</b> '+esc(ap[2])))},1800);return}
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q))
+   .then(function(r){return r.json()})
+   .then(function(j){
+    if(!j.length){alert('ไม่พบสถานที่ "'+q+'" ลองใช้ชื่ออื่นหรือเพิ่มชื่อประเทศ');return}
+    map.flyTo([parseFloat(j[0].lat),parseFloat(j[0].lon)],11);
+   })
+   .catch(function(){alert('ค้นหาไม่สำเร็จ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต')});
+ });
+ refresh();
+})();
+</script>
+</body>
+</html>
