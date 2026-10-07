@@ -381,6 +381,26 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   color:var(--mute);
 }
 
+
+.wp-edit-tabs{
+  display:flex;
+  gap:5px;
+  margin:7px 0 4px;
+}
+.wp-edit-tabs button{
+  flex:1;
+  padding:4px 6px;
+  font-size:10px;
+}
+.wp-edit-tabs button.active{
+  background:var(--cyan);
+  color:#04202a;
+  border-color:var(--cyan);
+  font-weight:600;
+}
+.wp-edit-mode{display:none}
+.wp-edit-mode.on{display:block}
+
 </style>
 </head>
 <body>
@@ -410,7 +430,7 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 
 <section class="params">
   <label>Airspeed (kt)<input id="speed" type="number" min="1" value="120"></label>
-  <label>Fuel lb/hr<input id="burn" type="number" min="0" value="40"></label>
+  <label>Fuel Consumption<input id="burn" type="number" min="0" value="40"></label>
 </section>
 <div id="insertModeBanner">
   <span id="insertModeText"></span>
@@ -629,7 +649,6 @@ var lightRptLayer=L.layerGroup();
 var heliRptLayer=L.layerGroup();
 var lineLayer=L.layerGroup().addTo(map);
 var markerLayer=L.layerGroup().addTo(map);
-var elevMark=L.layerGroup().addTo(map);
 var elevHoverLayer=L.layerGroup().addTo(map);
 
 var provPane=map.createPane('prov');
@@ -1480,7 +1499,6 @@ function startInsertWaypoint(index){
 
 function drawLines(){
   lineLayer.clearLayers();
-  elevMark.clearLayers();
 
   var total=0,legs=[],top=null,pend=false;
   for(var i=1;i<pts.length;i++){
@@ -1507,12 +1525,6 @@ function drawLines(){
   document.getElementById('tFuel').textContent=(pts.length>1&&isFinite(hrs))?(hrs*burn).toFixed(0):'–';
   document.getElementById('tElev').textContent=legs.length?(top?top.ft.toLocaleString()+' ft'+(pend?'+':''):(pend?'…':'–')):'–';
 
-  if(top){
-    L.marker(top.pt,{
-      interactive:false,
-      icon:L.divIcon({className:'leglabel',html:'▲ '+top.ft.toLocaleString()+' ft'})
-    }).addTo(elevMark);
-  }
 
   var el=document.getElementById('legs');
   if(!pts.length){
@@ -1521,7 +1533,7 @@ function drawLines(){
     return;
   }
 
-  var h='<table><thead><tr><th>จุด</th><th>ระยะ</th><th>ทิศ</th><th>เวลา</th><th>สูงสุด</th><th></th></tr></thead><tbody>';
+  var h='<table><thead><tr><th>Waypoint</th><th>Dist.</th><th>HDG</th><th>ETE</th><th>ELEV</th><th></th></tr></thead><tbody>';
   pts.forEach(function(p,i){
     var lg=legs[i-1];
 
@@ -1549,8 +1561,19 @@ function openWaypointEditor(marker,p,index){
     '<div class="wp-editor">'+
       '<h4>Edit Waypoint '+(index+1)+'</h4>'+
       '<label>Name<input id="editWpName" type="text" value="'+esc(p.name||'')+'"></label>'+
-      '<label>Latitude (DDM)<input id="editWpLat" type="text" value="'+esc(formatDDM(p.lat,true))+'"></label>'+
-      '<label>Longitude (DDM)<input id="editWpLng" type="text" value="'+esc(formatDDM(p.lng,false))+'"></label>'+
+      '<div class="wp-edit-tabs">'+
+        '<button type="button" id="editModeLatBtn" class="active">LAT / LONG</button>'+
+        '<button type="button" id="editModeRadBtn">RADIAL / DME</button>'+
+      '</div>'+
+      '<div id="editModeLat" class="wp-edit-mode on">'+
+        '<label>Latitude (DDM)<input id="editWpLat" type="text" value="'+esc(formatDDM(p.lat,true))+'"></label>'+
+        '<label>Longitude (DDM)<input id="editWpLng" type="text" value="'+esc(formatDDM(p.lng,false))+'"></label>'+
+      '</div>'+
+      '<div id="editModeRad" class="wp-edit-mode">'+
+        '<label>Reference Airport (ICAO)<input id="editWpRefIcao" type="text" placeholder="VTBD"></label>'+
+        '<label>Radial (°)<input id="editWpRadial" type="number" min="0" max="359.9" step="0.1" placeholder="090"></label>'+
+        '<label>DME (NM)<input id="editWpDme" type="number" min="0" step="0.1" placeholder="10"></label>'+
+      '</div>'+
       '<div class="wp-editor-actions">'+
         '<button type="button" class="wp-editor-save" id="editWpSave">Save</button>'+
         '<button type="button" class="wp-editor-delete" id="editWpDelete">Delete</button>'+
@@ -1563,18 +1586,65 @@ function openWaypointEditor(marker,p,index){
     var root=e.popup.getElement();
     if(!root)return;
 
+    var mode='latlon';
+    var latBtn=root.querySelector('#editModeLatBtn');
+    var radBtn=root.querySelector('#editModeRadBtn');
+    var latBox=root.querySelector('#editModeLat');
+    var radBox=root.querySelector('#editModeRad');
     var saveBtn=root.querySelector('#editWpSave');
     var delBtn=root.querySelector('#editWpDelete');
+
+    function setEditMode(next){
+      mode=next;
+      var isLat=mode==='latlon';
+      latBtn.classList.toggle('active',isLat);
+      radBtn.classList.toggle('active',!isLat);
+      latBox.classList.toggle('on',isLat);
+      radBox.classList.toggle('on',!isLat);
+    }
+
+    latBtn.onclick=function(){setEditMode('latlon');};
+    radBtn.onclick=function(){setEditMode('radial');};
 
     if(saveBtn){
       saveBtn.onclick=function(){
         var name=root.querySelector('#editWpName').value.trim();
-        var lat=parseCoordInput(root.querySelector('#editWpLat').value,true);
-        var lng=parseCoordInput(root.querySelector('#editWpLng').value,false);
+        var lat,lng;
 
-        if(!isFinite(lat)||!isFinite(lng)){
-          alert("Invalid coordinates. Use DDM, e.g. 13°54.750'N / 100°36.400'E");
-          return;
+        if(mode==='latlon'){
+          lat=parseCoordInput(root.querySelector('#editWpLat').value,true);
+          lng=parseCoordInput(root.querySelector('#editWpLng').value,false);
+
+          if(!isFinite(lat)||!isFinite(lng)){
+            alert("Invalid coordinates. Use DDM, e.g. 13°54.750'N / 100°36.400'E");
+            return;
+          }
+        }else{
+          var icao=root.querySelector('#editWpRefIcao').value.trim().toUpperCase();
+          var ap=APX[icao];
+          var radial=parseFloat(root.querySelector('#editWpRadial').value);
+          var dme=parseFloat(root.querySelector('#editWpDme').value);
+
+          if(!ap){
+            alert('Reference airport ICAO not found in database');
+            return;
+          }
+          if(!isFinite(radial)||radial<0||radial>=360){
+            alert('Radial must be between 0 and 359.9 degrees');
+            return;
+          }
+          if(!isFinite(dme)||dme<0){
+            alert('DME must be 0 NM or greater');
+            return;
+          }
+
+          var rp=waypointFromRadialDme(ap[4],ap[5],radial,dme);
+          lat=rp[0];
+          lng=rp[1];
+
+          if(!name){
+            name=icao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
+          }
         }
 
         p.name=name;
@@ -1582,9 +1652,7 @@ function openWaypointEditor(marker,p,index){
         p.lng=lng;
         p.place='';
 
-        // Clear cached elevation so edited legs are recalculated.
         elevCache={};
-
         map.closePopup();
         refresh();
         geocode(p);
