@@ -1580,7 +1580,8 @@ function openWaypointEditor(marker,p,index){
       '</div>'+
     '</div>';
 
-  marker.bindPopup(popupHtml,{closeButton:true}).openPopup();
+  marker.unbindPopup();
+  marker.bindPopup(popupHtml,{closeButton:true});
 
   marker.once('popupopen',function(e){
     var root=e.popup.getElement();
@@ -1597,14 +1598,14 @@ function openWaypointEditor(marker,p,index){
     function setEditMode(next){
       mode=next;
       var isLat=mode==='latlon';
-      latBtn.classList.toggle('active',isLat);
-      radBtn.classList.toggle('active',!isLat);
-      latBox.classList.toggle('on',isLat);
-      radBox.classList.toggle('on',!isLat);
+      if(latBtn)latBtn.classList.toggle('active',isLat);
+      if(radBtn)radBtn.classList.toggle('active',!isLat);
+      if(latBox)latBox.classList.toggle('on',isLat);
+      if(radBox)radBox.classList.toggle('on',!isLat);
     }
 
-    latBtn.onclick=function(){setEditMode('latlon');};
-    radBtn.onclick=function(){setEditMode('radial');};
+    if(latBtn)latBtn.onclick=function(){setEditMode('latlon');};
+    if(radBtn)radBtn.onclick=function(){setEditMode('radial');};
 
     if(saveBtn){
       saveBtn.onclick=function(){
@@ -1670,6 +1671,8 @@ function openWaypointEditor(marker,p,index){
       };
     }
   });
+
+  marker.openPopup();
 }
 
 function drawMarkers(){
