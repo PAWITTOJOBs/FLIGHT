@@ -116,6 +116,7 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   <div class="sub">
    <div><span>เวลาบิน</span><b id="tTime">–</b></div>
    <div><span>เชื้อเพลิง</span><b id="tFuel">–</b></div>
+   <div><span>ภูมิประเทศสูงสุด</span><b id="tElev">–</b></div>
    <div><span>จำนวนช่วง</span><b id="tLegs">0</b></div>
   </div>
   <div class="units" role="group" aria-label="หน่วยระยะทาง">
@@ -136,7 +137,7 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   <button id="clear">ล้างเส้นทาง</button>
   <button id="wBtn" type="button">ลม (Windy)</button>
  </div>
- <p class="note">ใช้ประเมินคร่าวๆ เท่านั้น ข้อมูลสนามบินและวงกลม CTR เป็นค่าประมาณ ไม่ใช่ขอบเขตจริงตาม AIP Thailand และไม่รวมลม น่านฟ้า หรือพื้นที่ห้ามบิน ห้ามใช้แทนการวางแผนการบินจริง</p>
+ <p class="note">ใช้ประเมินคร่าวๆ เท่านั้น พิกัดและความสูงสนามบินแปลงจาก AIP Thailand ส่วนวงกลม CTR เส้นทึบมาจาก AIP AD 2.17 (7 แห่ง) เส้นประเป็นค่าประมาณ และไม่รวม TMA/ขอบเขตอื่นๆ ความสูงภูมิประเทศมาจากข้อมูล DEM ที่สุ่มตัวอย่างตามเส้นทาง อาจพลาดยอดเขาแคบและไม่รวมเสาหรือสิ่งกีดขวาง และไม่รวมลม น่านฟ้า หรือพื้นที่ห้ามบิน ห้ามใช้แทนการวางแผนการบินจริง</p>
 </aside>
 <div id="mapwrap"><div id="map"></div><div id="status">คลิกบนแผนที่เพื่อดูอำเภอ/จังหวัด</div>
  <div id="windy"><header><span>ลมและสภาพอากาศ (Windy)</span><span><button id="wSync" type="button">ไปที่จุดล่าสุด</button> <button id="wClose" type="button" aria-label="ปิด">✕</button></span></header><iframe id="wFrame" title="Windy" loading="lazy"></iframe></div></div>
@@ -173,26 +174,63 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
  // [ICAO, IATA, ชื่อ, จังหวัด, lat, lng, ความสูง ft, ทางวิ่ง m, รัศมี CTR NM] — ค่าประมาณ ต้องตรวจสอบกับ AIP Thailand
  var AP=[
- ['VTBS','BKK','สุวรรณภูมิ','สมุทรปราการ',13.6811,100.7472,5,4000,10],
- ['VTBD','DMK','ดอนเมือง','กรุงเทพฯ',13.9126,100.6068,9,3700,8],
- ['VTBU','UTP','อู่ตะเภา','ระยอง',12.6799,101.0050,42,3505,8],
- ['VTSP','HKT','ภูเก็ต','ภูเก็ต',8.1132,98.3169,82,3000,8],
- ['VTSG','KBV','กระบี่','กระบี่',8.0990,98.9862,17,3000,5],
- ['VTSS','HDY','หาดใหญ่','สงขลา',6.9332,100.3929,90,3000,8],
- ['VTSM','USM','สมุย','สุราษฎร์ธานี',9.5478,100.0623,53,2000,5],
- ['VTCC','CNX','เชียงใหม่','เชียงใหม่',18.7668,98.9626,1036,3100,8],
+ ['VTBS','BKK','สุวรรณภูมิ','สมุทรปราการ',13.6858,100.7489,4,4000,10],
+ ['VTBD','DMK','ดอนเมือง','กรุงเทพฯ',13.9144,100.6057,9,3700,5],
+ ['VTBU','UTP','อู่ตะเภา','ระยอง',12.6796,101.0049,59,3505,8],
+ ['VTSP','HKT','ภูเก็ต','ภูเก็ต',8.1125,98.3092,84,3000,5],
+ ['VTSG','KBV','กระบี่','กระบี่',8.1002,98.9853,93,3000,5],
+ ['VTSS','HDY','หาดใหญ่','สงขลา',6.9328,100.3950,90,3000,5],
+ ['VTSM','USM','สมุย','สุราษฎร์ธานี',9.5489,100.0625,64,2000,5],
+ ['VTCC','CNX','เชียงใหม่','เชียงใหม่',18.7714,98.9628,1036,3100,8],
  ['VTCT','CEI','แม่ฟ้าหลวง เชียงราย','เชียงราย',19.9523,99.8829,1280,3000,5],
- ['VTPP','PHS','พิษณุโลก','พิษณุโลก',16.7829,100.2791,154,3000,5],
+ ['VTPP','PHS','พิษณุโลก','พิษณุโลก',16.7829,100.2791,145,3000,5],
  ['VTUD','UTH','อุดรธานี','อุดรธานี',17.3864,102.7882,579,3050,5],
- ['VTUK','KKC','ขอนแก่น','ขอนแก่น',16.4666,102.7836,670,3000,5],
+ ['VTUK','KKC','ขอนแก่น','ขอนแก่น',16.4666,102.7837,681,3000,5],
  ['VTUU','UBP','อุบลราชธานี','อุบลราชธานี',15.2513,104.8703,406,3000,5],
- ['VTST','TST','ตรัง','ตรัง',7.5087,99.6166,80,2500,5]];
+ ['VTST','TST','ตรัง','ตรัง',7.5086,99.6158,67,2500,5],
+ ['VTUW','KOP','นครพนม','นครพนม',17.3853,104.6419,587,0,0],
+ ['VTUO','BFV','บุรีรัมย์','บุรีรัมย์',15.2268,103.2512,590,0,0],
+ ['VTCN','NNT','น่าน นคร','น่าน',18.8079,100.7834,685,0,0],
+ ['VTPH','HHQ','หัวหิน','ประจวบคีรีขันธ์',12.6303,99.9534,62,0,0],
+ // ภาคเหนือ
+ ['VTCI','PYY','ปาย','แม่ฮ่องสอน',19.3720,98.4359,1676,0,0],
+ ['VTCH','HGN','แม่ฮ่องสอน','แม่ฮ่องสอน',19.3017,97.9751,929,0,0],
+ ['VTCL','LPT','ลำปาง','ลำปาง',18.2721,99.5041,811,0,0],
+ ['VTCP','PRH','แพร่','แพร่',18.1317,100.1646,538,0,0],
+ // ภาคกลาง/ตะวันตก/ตะวันออก
+ ['VTPM','MAQ','แม่สอด','ตาก',16.6998,98.5435,690,0,0],
+ ['VTPO','THS','สุโขทัย','สุโขทัย',17.2378,99.8183,179,0,0],
+ ['VTPB','PHY','เพชรบูรณ์','เพชรบูรณ์',16.6760,101.1951,450,0,0],
+ ['VTPN','','นครสวรรค์','นครสวรรค์',15.6725,100.1360,113,0,0],
+ ['VTPI','','ตาคลี','นครสวรรค์',15.2773,100.2959,103,0,0],
+ ['VTBP','','ประจวบคีรีขันธ์','ประจวบคีรีขันธ์',11.7884,99.8046,17,0,0],
+ ['VTBW','','วัฒนานคร','สระแก้ว',13.7688,102.3156,225,0,0],
+ ['VTBO','TDX','ตราด','ตราด',12.2753,102.3200,82,0,0],
+ // ภาคตะวันออกเฉียงเหนือ
+ ['VTUQ','NAK','นครราชสีมา','นครราชสีมา',14.9495,102.3127,765,0,0],
+ ['VTUN','','โคราช (กองบิน 1)','นครราชสีมา',14.9333,102.0833,729,0,0],
+ ['VTUL','LOE','เลย','เลย',17.4391,101.7221,860,0,0],
+ ['VTUI','SNO','สกลนคร (บ้านค่าย)','สกลนคร',17.1951,104.1186,529,0,0],
+ ['VTUV','ROI','ร้อยเอ็ด','ร้อยเอ็ด',16.1168,103.7738,451,0,0],
+ // ภาคใต้
+ ['VTSE','CJM','ชุมพร','ชุมพร',10.7112,99.3617,22,0,0],
+ ['VTSB','URT','สุราษฎร์ธานี','สุราษฎร์ธานี',9.1361,99.1390,20,0,0],
+ ['VTSR','UNN','ระนอง','ระนอง',9.7776,98.5855,57,0,0],
+ ['VTSF','NST','นครศรีธรรมราช','นครศรีธรรมราช',8.5396,99.9447,13,2100,0],
+ ['VTSN','','Cha-Ian นครศรีธรรมราช','นครศรีธรรมราช',8.4639,99.9583,44,0,0],
+ ['VTSH','','สงขลา','สงขลา',7.1857,100.6088,12,0,0],
+ ['VTSK','PAN','ปัตตานี','ปัตตานี',6.7857,101.1536,8,0,0],
+ ['VTSC','NAW','นราธิวาส','นราธิวาส',6.5232,101.7448,18,0,0],
+ ['VTSY','','เบตง','ยะลา',5.7888,101.1472,738,0,0]];
+ // เขต ATS ตาม AIP AD 2.17: [รัศมี NM, เพดาน, lat ศูนย์กลาง, lng ศูนย์กลาง] (ถ้าไม่ระบุศูนย์กลาง ใช้ ARP) — ทั้งหมด Class C
+ var CTRD={VTBS:[5,'SFC–2,000 ft'],VTBD:[5,'SFC–2,000 ft AGL'],VTCC:[5,'ถึง 5,000 ft AGL',18.7661,98.9612],VTCT:[5,'ถึง 2,000 ft AGL'],VTSS:[5,'ถึง 3,000 ft AGL',6.9317,100.3917],VTSP:[5,'ถึง 2,000 ft AGL',8.1117,98.3100],VTSK:[5,'ถึง 2,000 ft AGL']};
+ var VER={VTBD:1,VTSP:1,VTSG:1,VTSS:1,VTSM:1,VTUK:1,VTBS:1,VTST:1,VTPP:1,VTCT:1,VTCI:1,VTCH:1,VTCL:1,VTCP:1,VTPM:1,VTPO:1,VTPB:1,VTPN:1,VTPI:1,VTBP:1,VTBW:1,VTBO:1,VTUQ:1,VTUN:1,VTUL:1,VTUI:1,VTUV:1,VTSE:1,VTSB:1,VTSR:1,VTSF:1,VTSN:1,VTSH:1,VTSK:1,VTSC:1,VTSY:1,VTBU:1,VTCC:1,VTUD:1,VTUU:1,VTUW:1,VTUO:1,VTCN:1,VTPH:1}; // พิกัด/ความสูงตรวจกับ AIP Thailand AD 2.2 แล้ว
  var aptLayer=L.layerGroup().addTo(map), ctrLayer=L.layerGroup().addTo(map), APX={};
  AP.forEach(function(a){
   APX[a[0]]=a;
-  L.circle([a[4],a[5]],{radius:a[8]*1852,color:'#5cd0e6',weight:1.5,dashArray:'6 5',fillOpacity:.07,interactive:false}).addTo(ctrLayer);
+  var cd=CTRD[a[0]];if(cd||a[8])L.circle(cd&&cd[2]?[cd[2],cd[3]]:[a[4],a[5]],{radius:(cd?cd[0]:a[8])*1852,color:'#5cd0e6',weight:cd?2:1.2,dashArray:cd?null:'3 7',fillOpacity:cd?.1:.04,interactive:false}).addTo(ctrLayer);
   var m=L.marker([a[4],a[5]],{icon:L.divIcon({className:'',html:'<span class="apt">✈ '+a[0]+'</span>',iconSize:[0,0]})}).addTo(aptLayer);
-  m.bindPopup('<div class="ap"><h4>'+a[0]+' / '+a[1]+'</h4><div>'+esc(a[2])+' จ.'+esc(a[3])+'<br>ความสูงสนามบิน ~'+a[6]+' ft<br>ทางวิ่งหลัก ~'+a[7]+' ม.<br>CTR (วงกลมประมาณ) รัศมี ~'+a[8]+' NM</div><button type="button">เพิ่มเป็นจุดบิน</button></div>');
+  m.bindPopup('<div class="ap"><h4>'+a[0]+(a[1]?' / '+a[1]:'')+'</h4><div>'+esc(a[2])+' จ.'+esc(a[3])+'<br>ความสูงสนามบิน '+(VER[a[0]]?'':'~')+a[6]+' ft'+(VER[a[0]]?' (AIP)':'')+'</div><button type="button">เพิ่มเป็นจุดบิน</button></div>');
   m.on('popupopen',function(e){e.popup.getElement().querySelector('button').onclick=function(){addPt(a[4],a[5],a[0]);map.closePopup()}});
  });
  var st=document.getElementById('status'),lastPlace='';
@@ -206,9 +244,32 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
    }).catch(function(){});
  }
  function addPt(lat,lng,name){var p={lat:lat,lng:lng,name:name||''};pts.push(p);refresh();geocode(p)}
- L.control.layers({'ภาพดาวเทียม':sat,'แผนที่ถนน':osm,'ภูมิประเทศ':topo},{'เส้นแบ่งจังหวัดและชื่อ':provLayer,'สนามบิน (ICAO)':aptLayer,'เขต CTR (ประมาณ)':ctrLayer}).addTo(map);
+ L.control.layers({'ภาพดาวเทียม':sat,'แผนที่ถนน':osm,'ภูมิประเทศ':topo},{'เส้นแบ่งจังหวัดและชื่อ':provLayer,'สนามบิน (ICAO)':aptLayer,'เขต CTR/ATZ (เส้นทึบ = AIP, ประ = ประมาณ)':ctrLayer}).addTo(map);
  L.control.scale({imperial:false,metric:true}).addTo(map);
  var lineLayer=L.layerGroup().addTo(map), markerLayer=L.layerGroup().addTo(map);
+ var elevCache={}, elevMark=L.layerGroup().addTo(map);
+ function legKey(a,b){return [a.lat,a.lng,b.lat,b.lng].map(function(x){return x.toFixed(4)}).join(',')}
+ function evTxt(ev){return (ev&&ev.ft!==undefined)?ev.ft.toLocaleString():(ev==='err'?'–':'…')}
+ // ความสูงภูมิประเทศสูงสุดต่อช่วง (Open-Meteo Elevation API, DEM ~90 ม.) สุ่มตัวอย่างตามเส้นทาง great-circle
+ function loadElev(){
+  for(var i=1;i<pts.length;i++){
+   var a=pts[i-1],b=pts[i],k=legKey(a,b);
+   if(elevCache[k])continue;
+   elevCache[k]='pending';
+   (function(k,a,b){
+    var n=Math.min(99,Math.max(2,Math.ceil(dist(a,b)/2))),path=arc(a,b,n);
+    var la=path.map(function(p){return p[0].toFixed(4)}).join(','),
+        lo=path.map(function(p){return (((p[1]+540)%360)-180).toFixed(4)}).join(',');
+    fetch('https://api.open-meteo.com/v1/elevation?latitude='+la+'&longitude='+lo)
+     .then(function(r){return r.json()})
+     .then(function(j){
+      var e=j.elevation;if(!e||!e.length)throw new Error('no data');
+      var mi=0;e.forEach(function(v,x){if(v>e[mi])mi=x});
+      elevCache[k]={ft:Math.max(0,Math.round(e[mi]*3.28084)),pt:path[mi]};drawLines();
+     }).catch(function(){elevCache[k]='err';drawLines()});
+   })(k,a,b);
+  }
+ }
 
  function dist(a,b){
   var p1=a.lat*rad,p2=b.lat*rad,dl=(b.lng-a.lng)*rad,dp=p2-p1;
@@ -220,8 +281,8 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   var y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
   return (Math.atan2(y,x)*deg+360)%360;
  }
- function arc(a,b){
-  var d=dist(a,b)/R_NM, out=[], n=Math.max(2,Math.ceil(d*deg/2));
+ function arc(a,b,nOv){
+  var d=dist(a,b)/R_NM, out=[], n=nOv||Math.max(2,Math.ceil(d*deg/2));
   var p1=a.lat*rad,l1=a.lng*rad,p2=b.lat*rad,l2=b.lng*rad;
   var prev=a.lng;
   for(var i=0;i<=n;i++){
@@ -249,11 +310,13 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
  function num(id){var v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0}
 
  function drawLines(){
-  lineLayer.clearLayers();
-  var total=0,legs=[],unwrap=0;
+  lineLayer.clearLayers();elevMark.clearLayers();
+  var total=0,legs=[],top=null,pend=false;
   for(var i=1;i<pts.length;i++){
    var a=pts[i-1],b=pts[i],d=dist(a,b),c=course(a,b);
-   total+=d; legs.push({d:d,c:c});
+   var ev=elevCache[legKey(a,b)];
+   total+=d; legs.push({d:d,c:c,ev:ev});
+   if(ev&&ev.ft!==undefined){if(!top||ev.ft>top.ft)top=ev}else if(ev!=='err')pend=true;
    var path=arc(a,b);
    L.polyline(path,{color:'#f5b335',weight:3,opacity:.95,interactive:false}).addTo(lineLayer);
    var mid=path[Math.floor(path.length/2)];
@@ -265,16 +328,18 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   document.getElementById('tTime').textContent=pts.length>1?fmtT(hrs):'–';
   document.getElementById('tFuel').textContent=(pts.length>1&&isFinite(hrs))?(hrs*burn).toFixed(0):'–';
   document.getElementById('tLegs').textContent=legs.length;
+  document.getElementById('tElev').textContent=legs.length?(top?top.ft.toLocaleString()+' ft'+(pend?'+':''):(pend?'…':'–')):'–';
+  if(top)L.marker(top.pt,{interactive:false,icon:L.divIcon({className:'leglabel',html:'▲ '+top.ft.toLocaleString()+' ft'})}).addTo(elevMark);
   var el=document.getElementById('legs');
   if(!pts.length){el.innerHTML='<p class="empty">คลิกบนแผนที่เพื่อวางจุดแรก แล้วคลิกต่อไปเรื่อยๆ เพื่อสร้างเส้นทาง ลากหมุดเพื่อย้ายจุดได้</p>';return}
-  var h='<table><thead><tr><th>จุด</th><th>ระยะ</th><th>ทิศ</th><th>เวลา</th><th></th></tr></thead><tbody>';
+  var h='<table><thead><tr><th>จุด</th><th>ระยะ</th><th>ทิศ</th><th>เวลา</th><th>สูงสุด ft</th><th></th></tr></thead><tbody>';
   pts.forEach(function(p,i){
    var lg=legs[i-1];
    h+='<tr><td><span class="dot">'+(i+1)+'</span>'+(p.name?'<b>'+esc(p.name)+'</b>':(i===0?'ต้นทาง':''))+(p.place?'<div class="pl">'+esc(p.place)+'</div>':'')+'</td>'+
     '<td>'+(lg?fmtD(lg.d):'')+'</td>'+
     '<td>'+(lg?('000'+Math.round(lg.c)%360).slice(-3)+'°':'')+'</td>'+
     '<td>'+(lg&&spd>0?fmtT(lg.d/spd).replace(' ชม. ',':').replace(' น.',''):'')+'</td>'+
-    '<td><button data-del="'+i+'" aria-label="ลบจุด '+(i+1)+'">✕</button></td></tr>';
+    '<td>'+(lg?evTxt(lg.ev):'')+'</td><td><button data-del="'+i+'" aria-label="ลบจุด '+(i+1)+'">✕</button></td></tr>';
   });
   el.innerHTML=h+'</tbody></table>';
  }
@@ -283,11 +348,11 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   pts.forEach(function(p,i){
    var m=L.marker([p.lat,p.lng],{draggable:true,icon:L.divIcon({className:'',html:'<div class="pin'+(i===0?' first':'')+'">'+(i+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13]})});
    m.on('drag',function(e){var ll=e.target.getLatLng();p.lat=ll.lat;p.lng=ll.lng;drawLines()});
-   m.on('dragend',function(e){var ll=e.target.getLatLng().wrap();p.lat=ll.lat;p.lng=ll.lng;p.name='';p.place='';drawLines();geocode(p)});
+   m.on('dragend',function(e){var ll=e.target.getLatLng().wrap();p.lat=ll.lat;p.lng=ll.lng;p.name='';p.place='';drawLines();loadElev();geocode(p)});
    m.addTo(markerLayer);
   });
  }
- function refresh(){drawMarkers();drawLines()}
+ function refresh(){drawMarkers();drawLines();loadElev()}
 
  map.on('click',function(e){var ll=e.latlng.wrap();addPt(ll.lat,ll.lng,'')});
  function openWindy(){
