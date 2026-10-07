@@ -3,72 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>แผนที่วางแผนการบิน</title>
+<title>แผนที่วางแผนการบิน — AIP Thailand</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
-<style>
-.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-layer{position:absolute;left:0;top:0}
-.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent}
-.leaflet-tile,.leaflet-marker-icon{user-select:none;-webkit-user-drag:none}
-.leaflet-tile{visibility:hidden}.leaflet-tile-loaded{visibility:inherit}
-.leaflet-container img.leaflet-tile,.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}
-.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}
-.leaflet-zoom-animated{transform-origin:0 0}
-.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}
-.leaflet-zoom-anim .leaflet-tile{transition:none}
-.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}
-.leaflet-top{top:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-right{right:0}
-.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}
-.leaflet-right .leaflet-control{float:right}
-.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}
-.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}
-.leaflet-bar{border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.65);overflow:hidden}
-.leaflet-bar a{display:block;width:30px;height:30px;line-height:30px;text-align:center;background:#fff;color:#000;text-decoration:none;border-bottom:1px solid #ccc;font:700 18px/30px sans-serif}
-.leaflet-bar a:last-child{border-bottom:none}
-.leaflet-control-layers{background:#fff;color:#111;border-radius:5px;padding:6px 10px;box-shadow:0 1px 5px rgba(0,0,0,.65);font-size:13px}
-.leaflet-control-layers-toggle{display:none}
-.leaflet-control-layers label{display:block}
-.leaflet-control-scale-line{background:rgba(255,255,255,.8);border:2px solid #777;border-top:none;padding:2px 5px;font-size:11px;color:#333;white-space:nowrap}
-.leaflet-control-attribution{background:rgba(255,255,255,.8);font-size:11px;padding:0 5px;color:#333}
-.leaflet-control-attribution a{color:#0063a6;text-decoration:none}
-.leaflet-interactive{cursor:pointer}
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#0b1722;--panel:#112233;--panel2:#16304a;--line:#2a4560;--text:#e8f0f6;--mute:#8fa8bd;--amber:#f5b335;--cyan:#5cd0e6;--red:#ff7a6b;
---sans:"IBM Plex Sans Thai","Sarabun",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-box-sizing:border-box}
-*,*::before,*::after{box-sizing:inherit}
+:root{
+  --ink:#30343a;--panel:#3a3f46;--panel2:#4a5058;--line:#666d76;
+  --text:#f1f3f5;--mute:#c0c5cc;--amber:#f5b335;--cyan:#5cd0e6;
+  --red:#ff4d4d;--orange:#ff944d;--yellow:#ffcc00;
+  --sans:"IBM Plex Sans Thai","Sarabun",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
 html,body{height:100%;margin:0;background:var(--ink);color:var(--text);font-family:var(--sans)}
-body{display:flex;flex-direction:row;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-#panel{width:360px;flex:none;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto}
+body{display:flex;flex-direction:row;padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
+#panel{width:390px;flex:none;display:flex;flex-direction:column;background:#3d4249;border-right:1px solid var(--line);overflow-y:auto}
 #mapwrap{flex:1;position:relative;min-width:0}
-#map{position:absolute;inset:0;background:#0a1620;cursor:crosshair}
-.leaflet-container{font-family:var(--sans)}
+#map{position:absolute;inset:0;background:#555b63;cursor:crosshair}
 header{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
-h1{font-size:18px;font-weight:600;margin:0 0 10px}
+h1{font-size:18px;font-weight:600;margin:0 0 6px}
+.version{font:11px var(--mono);color:var(--cyan);margin-bottom:10px}
 .search{display:flex;gap:6px}
-input,select,button{font:inherit;color:var(--text)}
-input,select{background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
-input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+input,select,button,textarea{font:inherit;color:var(--text)}
+input,select,textarea{background:#2f3338;border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
 .search input{flex:1}
 button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer}
 button:hover{border-color:var(--cyan)}
-button.primary{background:var(--amber);border-color:var(--amber);color:#1a1200;font-weight:600}
 .totals{padding:16px 18px;border-bottom:1px solid var(--line)}
 .big{font-family:var(--mono);font-size:38px;font-weight:500;color:var(--amber);line-height:1}
 .big small{font-size:16px;color:var(--mute);margin-left:6px}
-.sub{display:flex;gap:20px;margin-top:12px;font-family:var(--mono);font-size:15px}
+.sub{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-top:12px;font-family:var(--mono);font-size:15px}
 .sub span{display:block;font-family:var(--sans);font-size:12px;color:var(--mute)}
-.units{display:flex;gap:0;margin-top:14px}
+.units{display:flex;margin-top:14px}
 .units button{flex:1;border-radius:0;padding:6px}
-.units button:first-child{border-radius:6px 0 0 6px}.units button:last-child{border-radius:0 6px 6px 0}
+.units button:first-child{border-radius:6px 0 0 6px}
+.units button:last-child{border-radius:0 6px 6px 0}
 .units button[aria-pressed=true]{background:var(--cyan);border-color:var(--cyan);color:#04202a;font-weight:600}
 .params{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
 .params label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mute)}
 .params input{font-family:var(--mono);width:100%}
-.legs{padding:10px 18px;flex:1}
+.legs{padding:10px 18px;border-bottom:1px solid var(--line)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{font-weight:400;color:var(--mute);text-align:right;padding:4px 4px 6px;font-size:12px}
 th:first-child,td:first-child{text-align:left}
@@ -77,320 +55,1804 @@ td:first-child{font-family:var(--sans)}
 td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border:none}
 .dot{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--amber);color:#1a1200;text-align:center;font:600 12px/20px var(--mono);margin-right:6px}
 .empty{color:var(--mute);font-size:14px;line-height:1.6;padding:8px 0}
-.actions{display:flex;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--line)}
+.notam-input-panel{padding:12px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.notam-input-panel textarea{width:100%;height:82px;font-size:11px;font-family:var(--mono);resize:vertical}
+.notam-input-panel button{margin-top:6px;width:100%;font-size:12px;padding:6px;background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan);font-weight:600}
+.notam-corridor{padding:14px 18px;background:var(--ink);border-bottom:1px solid var(--line)}
+.notam-corridor-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.notam-corridor-header b{color:var(--red);font-size:13px}
+.notam-list{max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.notam-card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:11px}
+.notam-card.alert{border-color:var(--red)}
+.notam-card-top{display:flex;justify-content:space-between;font-family:var(--mono);font-weight:600;color:var(--amber);margin-bottom:4px}
+.notam-card pre{margin:4px 0 0;white-space:pre-wrap;font-family:var(--mono);color:var(--text);font-size:10px;line-height:1.35}
+.actions{display:flex;gap:8px;padding:12px 18px 16px}
 .actions button{flex:1}
-.note{font-size:12px;color:var(--mute);padding:0 18px 16px;line-height:1.5}
+.note{font-size:11px;color:var(--mute);padding:0 18px 16px;line-height:1.55}
 .pin{width:26px;height:26px;border-radius:50%;background:var(--amber);color:#1a1200;border:2px solid #fff;text-align:center;font:600 13px/22px var(--mono);box-shadow:0 1px 6px rgba(0,0,0,.5)}
 .pin.first{background:var(--cyan)}
-.leglabel{background:rgba(11,23,34,.88);color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:1px 6px;font:500 12px var(--mono);white-space:nowrap;width:auto!important;height:auto!important;transform:translate(-50%,-50%)}
-.apt{background:rgba(11,23,34,.9);color:var(--cyan);border:1px solid var(--cyan);border-radius:4px;padding:1px 5px;font:500 11px var(--mono);white-space:nowrap;transform:translate(-50%,-50%);display:inline-block}
+.leglabel{background:rgba(55,60,67,.90);color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:1px 6px;font:500 12px var(--mono);white-space:nowrap;width:auto!important;height:auto!important;transform:translate(-50%,-50%)}
+.apt{background:rgba(55,60,67,.92);color:var(--cyan);border:1px solid var(--cyan);border-radius:4px;padding:1px 5px;font:500 11px var(--mono);white-space:nowrap;transform:translate(-50%,-50%);display:inline-block}
 .provlbl{display:none;color:#fff;font:500 12px var(--sans);text-shadow:0 0 3px #000,0 0 3px #000;white-space:nowrap;transform:translate(-50%,-50%);width:auto!important;height:auto!important;pointer-events:none}
 .z7 .provlbl{display:block}
-#status{position:absolute;left:10px;bottom:10px;z-index:900;background:rgba(11,23,34,.88);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font:12px var(--mono);color:var(--text);max-width:calc(100% - 20px)}
+#status{position:absolute;left:10px;bottom:10px;z-index:900;background:rgba(55,60,67,.90);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font:12px var(--mono);color:var(--text);max-width:calc(100% - 20px)}
 .pl{font-size:11px;color:var(--mute);font-family:var(--sans)}
 .ap h4{margin:0 0 4px;font-size:14px}.ap div{font-size:12px;line-height:1.5}.ap button{margin-top:6px;background:#f5b335;color:#1a1200;border:none;font-weight:600;padding:5px 10px}
-#windy{position:absolute;right:10px;bottom:44px;width:min(420px,calc(100% - 20px));height:min(340px,55%);z-index:950;background:var(--panel);border:1px solid var(--line);border-radius:8px;display:none;flex-direction:column;overflow:hidden}
+#windy{position:absolute;right:10px;bottom:44px;width:min(440px,calc(100% - 20px));height:min(360px,58%);z-index:950;background:var(--panel);border:1px solid var(--line);border-radius:8px;display:none;flex-direction:column;overflow:hidden}
 #windy.on{display:flex}
 #windy header{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px}
 #windy header button{padding:2px 8px}
 #windy iframe{flex:1;border:0;width:100%}
+.airspace-popup h4{margin:0 0 5px;font-size:13px;font-family:var(--mono)}
+.airspace-popup pre{background:#30343a;color:#f1f3f5;padding:6px;border-radius:4px;font-size:11px;white-space:pre-wrap;max-height:160px;overflow:auto;font-family:var(--mono);border:1px solid #666d76}
+.notam-pin{width:22px;height:22px;border-radius:50%;background:#ff4d4d;color:#fff;border:2px solid #fff;text-align:center;font:bold 14px/18px sans-serif;box-shadow:0 1px 5px rgba(0,0,0,.5)}
+.leaflet-control-layers{background:#112233;color:#f1f3f5;border:1px solid #666d76}
+.leaflet-control-layers label{font-size:12px}
 @media (max-width:760px){
- body{flex-direction:column-reverse}
- #panel{width:100%;height:46vh;border-right:none;border-top:1px solid var(--line)}
- #mapwrap{flex:1}
- .big{font-size:30px}
+  body{flex-direction:column-reverse}
+  #panel{width:100%;height:48vh;border-right:none;border-top:1px solid var(--line)}
+  #mapwrap{flex:1}
+  .big{font-size:30px}
 }
+
+.rpt-light,.rpt-heli{
+  white-space:nowrap;
+  transform:translate(-50%,-50%);
+  font:600 10px var(--mono);
+  padding:2px 5px;
+  border-radius:4px;
+  box-shadow:0 1px 5px rgba(0,0,0,.55);
+}
+.rpt-light{
+  background:#062b34;
+  color:#72e4f5;
+  border:1px solid #72e4f5;
+}
+.rpt-heli{
+  background:#281c05;
+  color:#ffd36a;
+  border:1px solid #ffd36a;
+}
+.rpt-popup h4{
+  margin:0 0 5px;
+  font:600 13px var(--mono);
+}
+.rpt-popup div{
+  font-size:11px;
+  line-height:1.5;
+}
+.rpt-popup .rpt-add-btn{
+  margin-top:7px;
+  background:#f5b335;
+  color:#1a1200;
+  border:none;
+  font-weight:600;
+  padding:5px 10px;
+}
+
+
+.elevation-profile{
+  padding:12px 18px 14px;
+  border-bottom:1px solid var(--line);
+  background:#383d43;
+}
+.elevation-profile-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:10px;
+  margin-bottom:8px;
+}
+.elevation-profile-head b{
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+}
+.elevation-profile-head small{
+  font:10px var(--mono);
+  color:var(--mute);
+}
+#elevChartWrap{
+  width:100%;
+  height:190px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:#2f3338;
+  overflow:hidden;
+}
+#elevChart{
+  display:block;
+  width:100%;
+  height:100%;
+}
+.elev-empty{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  text-align:center;
+  color:var(--mute);
+  font-size:12px;
+}
+.elev-grid{stroke:#646a72;stroke-width:.7;opacity:.55}
+.elev-axis{stroke:#aeb4bb;stroke-width:1}
+.elev-line{fill:none;stroke:#f5b335;stroke-width:2}
+.elev-fill{fill:rgba(245,179,53,.14)}
+.elev-label{fill:#d8dde2;font:9px var(--mono)}
+.elev-axis-title{fill:#f1f3f5;font:10px var(--sans);font-weight:500}
+.elev-waypoint{stroke:#72e4f5;stroke-width:1;stroke-dasharray:3 3;opacity:.75}
+.elev-waypoint-label{fill:#72e4f5;font:8px var(--mono)}
+
+
+.waypoint-input-panel{
+  padding:12px 18px;
+  border-bottom:1px solid var(--line);
+  background:#383d43;
+}
+.waypoint-input-panel h3{
+  margin:0 0 8px;
+  font-size:13px;
+  font-weight:600;
+}
+.wp-tabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:8px;
+}
+.wp-tabs button{
+  flex:1;
+  padding:6px 8px;
+  font-size:12px;
+}
+.wp-tabs button[aria-pressed="true"]{
+  background:var(--cyan);
+  color:#04202a;
+  border-color:var(--cyan);
+  font-weight:600;
+}
+.wp-mode{display:none}
+.wp-mode.on{display:block}
+.wp-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.wp-grid label{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  font-size:11px;
+  color:var(--mute);
+}
+.wp-grid input{
+  width:100%;
+  font-family:var(--mono);
+}
+.wp-grid .full{
+  grid-column:1 / -1;
+}
+.wp-add{
+  margin-top:8px;
+  width:100%;
+  background:var(--amber);
+  border-color:var(--amber);
+  color:#1a1200;
+  font-weight:600;
+}
+.wp-help{
+  margin-top:6px;
+  font-size:10px;
+  color:var(--mute);
+  line-height:1.4;
+}
+
+
+#elevChartWrap{position:relative}
+.elev-hover-line{
+  stroke:#ffffff;
+  stroke-width:1;
+  stroke-dasharray:3 3;
+  opacity:.9;
+  pointer-events:none;
+}
+.elev-hover-dot{
+  fill:#ffffff;
+  stroke:#f5b335;
+  stroke-width:2;
+  pointer-events:none;
+}
+#elevHoverInfo{
+  position:absolute;
+  top:8px;
+  right:8px;
+  z-index:3;
+  background:rgba(45,49,54,.92);
+  border:1px solid var(--line);
+  border-radius:5px;
+  padding:4px 7px;
+  font:10px var(--mono);
+  color:var(--text);
+  pointer-events:none;
+  display:none;
+}
+
+
+.wp-editor{
+  min-width:220px;
+}
+.wp-editor h4{
+  margin:0 0 7px;
+  font-size:13px;
+}
+.wp-editor label{
+  display:block;
+  margin-top:6px;
+  font-size:10px;
+  color:#c0c5cc;
+}
+.wp-editor input{
+  width:100%;
+  margin-top:3px;
+  padding:5px 7px;
+  font:11px var(--mono);
+  color:#f1f3f5;
+  background:#2f3338;
+  border:1px solid #666d76;
+  border-radius:4px;
+}
+.wp-editor-actions{
+  display:flex;
+  gap:6px;
+  margin-top:8px;
+}
+.wp-editor-actions button{
+  flex:1;
+  padding:5px 7px;
+  font-size:11px;
+}
+.wp-editor-save{
+  background:#f5b335!important;
+  color:#1a1200!important;
+  border-color:#f5b335!important;
+  font-weight:600;
+}
+.wp-editor-delete{
+  color:#ff7a7a!important;
+}
+
+
+.totals .sub{
+  grid-template-columns:1fr 1fr;
+}
+.totals .sub b{
+  font:500 15px var(--mono);
+  color:var(--text);
+}
+.totals .sub b small{
+  font:500 12px var(--mono);
+  color:var(--mute);
+}
+
+
+.insert-row td{
+  padding:4px 0 6px!important;
+  border-top:none!important;
+  text-align:center!important;
+}
+.insert-wp-btn{
+  width:auto;
+  padding:3px 9px;
+  font-size:10px;
+  color:var(--cyan);
+  background:#32373d;
+  border:1px dashed var(--cyan);
+  border-radius:12px;
+}
+.insert-wp-btn:hover{background:#41474f}
+#insertModeBanner{
+  display:none;
+  margin:0 18px 10px;
+  padding:7px 9px;
+  border:1px solid var(--cyan);
+  border-radius:6px;
+  background:#30383e;
+  color:var(--cyan);
+  font-size:11px;
+}
+#insertModeBanner.on{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+#insertModeBanner button{
+  padding:2px 7px;
+  font-size:10px;
+}
+
+
+#tDist{
+  font:500 15px var(--mono);
+  color:var(--text);
+}
+#tUnit{
+  font:500 12px var(--mono);
+  color:var(--mute);
+}
+
 </style>
 </head>
 <body>
 <aside id="panel">
- <header>
-  <h1>แผนที่วางแผนการบิน</h1>
+<header>
+  <h1>FLIGHT PLANNER</h1>
+  <div class="version">AIP THAILAND • AIRAC EFFECTIVE 01 OCT 2026</div>
   <form class="search" id="searchForm">
-   <input id="q" type="search" placeholder="รหัส ICAO (เช่น VTBS) หรือชื่อสถานที่" aria-label="ค้นหาสถานที่">
-   <button type="submit">ค้นหา</button>
+    <input id="q" type="search" placeholder="ICAO เช่น VTBL, VTBS หรือชื่อสถานที่" aria-label="ค้นหาสถานที่">
+    <button type="submit">ค้นหา</button>
   </form>
- </header>
- <section class="totals" aria-live="polite">
-  <div class="big"><span id="tDist">0</span><small id="tUnit">NM</small></div>
+</header>
+
+<section class="totals" aria-live="polite">
   <div class="sub">
-   <div><span>เวลาบิน</span><b id="tTime">–</b></div>
-   <div><span>เชื้อเพลิง</span><b id="tFuel">–</b></div>
-   <div><span>ภูมิประเทศสูงสุด</span><b id="tElev">–</b></div>
-   <div><span>จำนวนช่วง</span><b id="tLegs">0</b></div>
+    <div><span>Distance</span><b><span id="tDist">0</span> <small id="tUnit">NM</small></b></div>
+    <div><span>Flight Time</span><b id="tTime">–</b></div>
+    <div><span>Fuel</span><b id="tFuel">–</b></div>
+    <div><span>Highest ELEV</span><b id="tElev">–</b></div>
   </div>
-  <div class="units" role="group" aria-label="หน่วยระยะทาง">
-   <button data-u="nm" aria-pressed="true">ไมล์ทะเล</button>
-   <button data-u="km" aria-pressed="false">กิโลเมตร</button>
-   <button data-u="mi" aria-pressed="false">ไมล์</button>
+  <div class="units" role="group" aria-label="Distance unit">
+    <button data-u="nm" aria-pressed="true">NM</button>
+    <button data-u="km" aria-pressed="false">KM</button>
+    <button data-u="mi" aria-pressed="false">Mi</button>
   </div>
- </section>
- <section class="params">
-  <label>ความเร็วเดินทาง (knots)<input id="speed" type="number" min="1" value="120"></label>
-  <label>เชื้อเพลิงต่อชั่วโมง<input id="burn" type="number" min="0" value="40"></label>
- </section>
- <section class="legs">
-  <div id="legs"></div>
- </section>
- <div class="actions">
-  <button id="undo">ย้อนกลับจุดล่าสุด</button>
+</section>
+
+<section class="params">
+  <label>Airspeed (kt)<input id="speed" type="number" min="1" value="120"></label>
+  <label>Fuel lb/hr<input id="burn" type="number" min="0" value="40"></label>
+</section>
+<div id="insertModeBanner">
+  <span id="insertModeText"></span>
+  <button type="button" id="cancelInsertMode">Cancel</button>
+</div>
+<section class="waypoint-input-panel">
+  <h3>Add Waypoint</h3>
+  <div class="wp-tabs">
+    <button type="button" id="wpTabAirport" aria-pressed="true">AIRPORT</button>
+    <button type="button" id="wpTabLatLon" aria-pressed="false">LAT / LONG (DDM)</button>
+    <button type="button" id="wpTabRadial" aria-pressed="false">RADIAL / DME</button>
+  </div>
+
+  <div class="wp-mode on" id="wpModeAirport">
+    <div class="wp-grid">
+      <label class="full">Airport Name / ICAO
+        <input id="wpAirportQuery" type="text" list="airportList" placeholder="e.g. Don Mueang, Kamphaeng Saen, VTBD, VTBK">
+        <datalist id="airportList"></datalist>
+      </label>
+    </div>
+    <button type="button" class="wp-add" id="wpAddAirport">Add Airport Waypoint</button>
+    <div class="wp-help">Search by ICAO code, airport name, or province from the built-in airport database.</div>
+  </div>
+
+  <div class="wp-mode" id="wpModeLatLon">
+    <div class="wp-grid">
+      <label>Latitude (DD°MM.mmm\')
+        <input id="wpLat" type="text" placeholder="13°54.750\'N">
+      </label>
+      <label>Longitude (DDD°MM.mmm\')
+        <input id="wpLng" type="text" placeholder="100°36.400\'E">
+      </label>
+      <label class="full">Waypoint Name (optional)
+        <input id="wpName" type="text" placeholder="e.g. WP1">
+      </label>
+    </div>
+    <button type="button" class="wp-add" id="wpAddLatLon">Add Waypoint</button>
+    <div class="wp-help">Use Degrees Decimal Minutes (DDM), e.g. 13°54.750\'N / 100°36.400\'E.</div>
+  </div>
+
+  <div class="wp-mode" id="wpModeRadial">
+    <div class="wp-grid">
+      <label>Reference Airport (ICAO)
+        <input id="wpRefIcao" type="text" placeholder="VTBD">
+      </label>
+      <label>Radial (°)
+        <input id="wpRadial" type="number" min="0" max="359.9" step="0.1" placeholder="090">
+      </label>
+      <label>DME (NM)
+        <input id="wpDme" type="number" min="0" step="0.1" placeholder="10">
+      </label>
+      <label>Waypoint Name (optional)
+        <input id="wpRadialName" type="text" placeholder="VTBD R090/10">
+      </label>
+    </div>
+    <button type="button" class="wp-add" id="wpAddRadial">Add Waypoint</button>
+    <div class="wp-help">Uses airport coordinates as the reference point. Radial is measured clockwise from true north for map planning.</div>
+  </div>
+</section>
+
+<section class="legs"><div id="legs"></div></section>
+<section class="elevation-profile">
+  <div class="elevation-profile-head">
+    <b>Elevation Profile</b>
+    <small id="elevProfileStatus">Route elevation</small>
+  </div>
+  <div id="elevChartWrap">
+    <div id="elevHoverInfo"></div>
+    <div class="elev-empty">Add at least two route points to display the elevation profile.</div>
+  </div>
+</section>
+
+<section class="notam-input-panel">
+  <label style="font-size:12px;color:var(--cyan);font-weight:600;display:block;margin-bottom:4px">+ นำเข้า NOTAM (ICAO Q-line)</label>
+  <textarea id="rawNotam" placeholder="วาง NOTAM ที่มี Q) ... เช่น Q) VTBB/QWELW/IV/BO/W/000/100/1345N10030E005"></textarea>
+  <button type="button" id="btnParseNotam">พอร์ตลงแผนที่</button>
+</section>
+
+<section class="notam-corridor">
+  <div class="notam-corridor-header">
+    <b>⚠ NOTAM ใกล้เส้นทางบิน</b>
+    <small id="notamFoundCount" style="color:var(--mute)">0 รายการ</small>
+  </div>
+  <div id="notamRouteList" class="notam-list">
+    <div style="color:var(--mute);font-size:12px">เลือกอย่างน้อย 2 จุดเพื่อคำนวณ NOTAM ใกล้เส้นทาง</div>
+  </div>
+</section>
+
+<div class="actions">
+  <button id="undo">ย้อนกลับ</button>
   <button id="clear">ล้างเส้นทาง</button>
-  <button id="wBtn" type="button">ลม (Windy)</button>
- </div>
- <p class="note">ใช้ประเมินคร่าวๆ เท่านั้น พิกัดและความสูงสนามบินแปลงจาก AIP Thailand ส่วนวงกลม CTR เส้นทึบมาจาก AIP AD 2.17 (7 แห่ง) เส้นประเป็นค่าประมาณ และไม่รวม TMA/ขอบเขตอื่นๆ ความสูงภูมิประเทศมาจากข้อมูล DEM ที่สุ่มตัวอย่างตามเส้นทาง อาจพลาดยอดเขาแคบและไม่รวมเสาหรือสิ่งกีดขวาง และไม่รวมลม น่านฟ้า หรือพื้นที่ห้ามบิน ห้ามใช้แทนการวางแผนการบินจริง</p>
+  <button id="wBtn" type="button">Windy</button>
+</div>
+
 </aside>
-<div id="mapwrap"><div id="map"></div><div id="status">คลิกบนแผนที่เพื่อดูอำเภอ/จังหวัด</div>
- <div id="windy"><header><span>ลมและสภาพอากาศ (Windy)</span><span><button id="wSync" type="button">ไปที่จุดล่าสุด</button> <button id="wClose" type="button" aria-label="ปิด">✕</button></span></header><iframe id="wFrame" title="Windy" loading="lazy"></iframe></div></div>
+
+<div id="mapwrap">
+  <div id="map"></div>
+  <div id="status">คลิกบนแผนที่เพื่อเพิ่ม waypoint</div>
+  <div id="windy">
+    <header><span>Windy</span><span><button id="wSync" type="button">จุดล่าสุด</button> <button id="wClose" type="button">✕</button></span></header>
+    <iframe id="wFrame" title="Windy" loading="lazy"></iframe>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 (function(){
- var R_NM=3440.065, rad=Math.PI/180, deg=180/Math.PI;
- var UF={nm:1,km:1.852,mi:1.150779}, UL={nm:'NM',km:'km',mi:'mi'};
- var unit='nm', pts=[];
+'use strict';
 
- var sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Imagery © Esri, Maxar, Earthstar Geographics'});
- var osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'});
- var topo=L.tileLayer('https://tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap, OpenStreetMap contributors'});
- var map=L.map('map',{center:[13.5,101],zoom:6,layers:[sat],worldCopyJump:true,zoomControl:true});
- var provPane=map.createPane('prov');provPane.style.zIndex=350;provPane.style.pointerEvents='none';
- var provLayer=L.layerGroup().addTo(map);
- var provURLs=['https://cdn.jsdelivr.net/gh/chingchai/OpenGISData-Thailand/provinces.geojson','https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/provinces.geojson','https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/main/provinces.geojson'];
- function loadProv(i){
-  if(i>=provURLs.length){console.warn('โหลดเส้นแบ่งจังหวัดไม่สำเร็จ');return}
-  fetch(provURLs[i]).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})
-   .then(function(g){
-    L.geoJSON(g,{pane:'prov',renderer:L.canvas({pane:'prov'}),interactive:false,style:{color:'#ffffff',weight:1,opacity:.75,fill:false}}).addTo(provLayer);
-    (g.features||[]).forEach(function(f){
-     var pr=f.properties||{},nm=pr.pro_th||pr.PROV_NAMT||pr.prov_th||pr.name_th||pr.NAME_1||'';
-     if(!nm)return;
-     var c=L.geoJSON(f).getBounds().getCenter();
-     L.marker(c,{interactive:false,icon:L.divIcon({className:'provlbl',html:esc(nm)})}).addTo(provLayer);
-    });
-   })
-   .catch(function(){loadProv(i+1)});
- }
- loadProv(0);
- function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
- // [ICAO, IATA, ชื่อ, จังหวัด, lat, lng, ความสูง ft, ทางวิ่ง m, รัศมี CTR NM] — ค่าประมาณ ต้องตรวจสอบกับ AIP Thailand
- var AP=[
- ['VTBS','BKK','สุวรรณภูมิ','สมุทรปราการ',13.6858,100.7489,4,4000,10],
- ['VTBD','DMK','ดอนเมือง','กรุงเทพฯ',13.9144,100.6057,9,3700,5],
- ['VTBU','UTP','อู่ตะเภา','ระยอง',12.6796,101.0049,59,3505,8],
- ['VTSP','HKT','ภูเก็ต','ภูเก็ต',8.1125,98.3092,84,3000,5],
- ['VTSG','KBV','กระบี่','กระบี่',8.1002,98.9853,93,3000,5],
- ['VTSS','HDY','หาดใหญ่','สงขลา',6.9328,100.3950,90,3000,5],
- ['VTSM','USM','สมุย','สุราษฎร์ธานี',9.5489,100.0625,64,2000,5],
- ['VTCC','CNX','เชียงใหม่','เชียงใหม่',18.7714,98.9628,1036,3100,8],
- ['VTCT','CEI','แม่ฟ้าหลวง เชียงราย','เชียงราย',19.9523,99.8829,1280,3000,5],
- ['VTPP','PHS','พิษณุโลก','พิษณุโลก',16.7829,100.2791,145,3000,5],
- ['VTUD','UTH','อุดรธานี','อุดรธานี',17.3864,102.7882,579,3050,5],
- ['VTUK','KKC','ขอนแก่น','ขอนแก่น',16.4666,102.7837,681,3000,5],
- ['VTUU','UBP','อุบลราชธานี','อุบลราชธานี',15.2513,104.8703,406,3000,5],
- ['VTST','TST','ตรัง','ตรัง',7.5086,99.6158,67,2500,5],
- ['VTUW','KOP','นครพนม','นครพนม',17.3853,104.6419,587,0,0],
- ['VTUO','BFV','บุรีรัมย์','บุรีรัมย์',15.2268,103.2512,590,0,0],
- ['VTCN','NNT','น่าน นคร','น่าน',18.8079,100.7834,685,0,0],
- ['VTPH','HHQ','หัวหิน','ประจวบคีรีขันธ์',12.6303,99.9534,62,0,0],
- // ภาคเหนือ
- ['VTCI','PYY','ปาย','แม่ฮ่องสอน',19.3720,98.4359,1676,0,0],
- ['VTCH','HGN','แม่ฮ่องสอน','แม่ฮ่องสอน',19.3017,97.9751,929,0,0],
- ['VTCL','LPT','ลำปาง','ลำปาง',18.2721,99.5041,811,0,0],
- ['VTCP','PRH','แพร่','แพร่',18.1317,100.1646,538,0,0],
- // ภาคกลาง/ตะวันตก/ตะวันออก
- ['VTPM','MAQ','แม่สอด','ตาก',16.6998,98.5435,690,0,0],
- ['VTPO','THS','สุโขทัย','สุโขทัย',17.2378,99.8183,179,0,0],
- ['VTPB','PHY','เพชรบูรณ์','เพชรบูรณ์',16.6760,101.1951,450,0,0],
- ['VTPN','','นครสวรรค์','นครสวรรค์',15.6725,100.1360,113,0,0],
- ['VTPI','','ตาคลี','นครสวรรค์',15.2773,100.2959,103,0,0],
- ['VTBP','','ประจวบคีรีขันธ์','ประจวบคีรีขันธ์',11.7884,99.8046,17,0,0],
- ['VTBW','','วัฒนานคร','สระแก้ว',13.7688,102.3156,225,0,0],
- ['VTBO','TDX','ตราด','ตราด',12.2753,102.3200,82,0,0],
- // ภาคตะวันออกเฉียงเหนือ
- ['VTUQ','NAK','นครราชสีมา','นครราชสีมา',14.9495,102.3127,765,0,0],
- ['VTUN','','โคราช (กองบิน 1)','นครราชสีมา',14.9333,102.0833,729,0,0],
- ['VTUL','LOE','เลย','เลย',17.4391,101.7221,860,0,0],
- ['VTUI','SNO','สกลนคร (บ้านค่าย)','สกลนคร',17.1951,104.1186,529,0,0],
- ['VTUV','ROI','ร้อยเอ็ด','ร้อยเอ็ด',16.1168,103.7738,451,0,0],
- // ภาคใต้
- ['VTSE','CJM','ชุมพร','ชุมพร',10.7112,99.3617,22,0,0],
- ['VTSB','URT','สุราษฎร์ธานี','สุราษฎร์ธานี',9.1361,99.1390,20,0,0],
- ['VTSR','UNN','ระนอง','ระนอง',9.7776,98.5855,57,0,0],
- ['VTSF','NST','นครศรีธรรมราช','นครศรีธรรมราช',8.5396,99.9447,13,2100,0],
- ['VTSN','','Cha-Ian นครศรีธรรมราช','นครศรีธรรมราช',8.4639,99.9583,44,0,0],
- ['VTSH','','สงขลา','สงขลา',7.1857,100.6088,12,0,0],
- ['VTSK','PAN','ปัตตานี','ปัตตานี',6.7857,101.1536,8,0,0],
- ['VTSC','NAW','นราธิวาส','นราธิวาส',6.5232,101.7448,18,0,0],
- ['VTSY','','เบตง','ยะลา',5.7888,101.1472,738,0,0]];
- // เขต ATS ตาม AIP AD 2.17: [รัศมี NM, เพดาน, lat ศูนย์กลาง, lng ศูนย์กลาง] (ถ้าไม่ระบุศูนย์กลาง ใช้ ARP) — ทั้งหมด Class C
- var CTRD={VTBS:[5,'SFC–2,000 ft'],VTBD:[5,'SFC–2,000 ft AGL'],VTCC:[5,'ถึง 5,000 ft AGL',18.7661,98.9612],VTCT:[5,'ถึง 2,000 ft AGL'],VTSS:[5,'ถึง 3,000 ft AGL',6.9317,100.3917],VTSP:[5,'ถึง 2,000 ft AGL',8.1117,98.3100],VTSK:[5,'ถึง 2,000 ft AGL']};
- var VER={VTBD:1,VTSP:1,VTSG:1,VTSS:1,VTSM:1,VTUK:1,VTBS:1,VTST:1,VTPP:1,VTCT:1,VTCI:1,VTCH:1,VTCL:1,VTCP:1,VTPM:1,VTPO:1,VTPB:1,VTPN:1,VTPI:1,VTBP:1,VTBW:1,VTBO:1,VTUQ:1,VTUN:1,VTUL:1,VTUI:1,VTUV:1,VTSE:1,VTSB:1,VTSR:1,VTSF:1,VTSN:1,VTSH:1,VTSK:1,VTSC:1,VTSY:1,VTBU:1,VTCC:1,VTUD:1,VTUU:1,VTUW:1,VTUO:1,VTCN:1,VTPH:1}; // พิกัด/ความสูงตรวจกับ AIP Thailand AD 2.2 แล้ว
- var aptLayer=L.layerGroup().addTo(map), ctrLayer=L.layerGroup().addTo(map), APX={};
- AP.forEach(function(a){
-  APX[a[0]]=a;
-  var cd=CTRD[a[0]];if(cd||a[8])L.circle(cd&&cd[2]?[cd[2],cd[3]]:[a[4],a[5]],{radius:(cd?cd[0]:a[8])*1852,color:'#5cd0e6',weight:cd?2:1.2,dashArray:cd?null:'3 7',fillOpacity:cd?.1:.04,interactive:false}).addTo(ctrLayer);
-  var m=L.marker([a[4],a[5]],{icon:L.divIcon({className:'',html:'<span class="apt">✈ '+a[0]+'</span>',iconSize:[0,0]})}).addTo(aptLayer);
-  m.bindPopup('<div class="ap"><h4>'+a[0]+(a[1]?' / '+a[1]:'')+'</h4><div>'+esc(a[2])+' จ.'+esc(a[3])+'<br>ความสูงสนามบิน '+(VER[a[0]]?'':'~')+a[6]+' ft'+(VER[a[0]]?' (AIP)':'')+'</div><button type="button">เพิ่มเป็นจุดบิน</button></div>');
-  m.on('popupopen',function(e){e.popup.getElement().querySelector('button').onclick=function(){addPt(a[4],a[5],a[0]);map.closePopup()}});
- });
- var st=document.getElementById('status'),lastPlace='';
- map.on('mousemove',function(e){var l=e.latlng.wrap();st.textContent=l.lat.toFixed(4)+', '+l.lng.toFixed(4)+(lastPlace?'  |  '+lastPlace:'')});
- map.on('zoomend',function(){map.getContainer().classList.toggle('z7',map.getZoom()>=7)});
- function geocode(p){
-  fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&accept-language=th&lat='+p.lat+'&lon='+p.lng)
-   .then(function(r){return r.json()}).then(function(j){
-    var a=j.address||{},d=a.county||a.city_district||a.district||a.town||a.city||'',pv=a.state||a.province||'';
-    p.place=[d,pv].filter(Boolean).join(' ');lastPlace=p.place;drawLines();
-   }).catch(function(){});
- }
- function addPt(lat,lng,name){var p={lat:lat,lng:lng,name:name||''};pts.push(p);refresh();geocode(p)}
- L.control.layers({'ภาพดาวเทียม':sat,'แผนที่ถนน':osm,'ภูมิประเทศ':topo},{'เส้นแบ่งจังหวัดและชื่อ':provLayer,'สนามบิน (ICAO)':aptLayer,'เขต CTR/ATZ (เส้นทึบ = AIP, ประ = ประมาณ)':ctrLayer}).addTo(map);
- L.control.scale({imperial:false,metric:true}).addTo(map);
- var lineLayer=L.layerGroup().addTo(map), markerLayer=L.layerGroup().addTo(map);
- var elevCache={}, elevMark=L.layerGroup().addTo(map);
- function legKey(a,b){return [a.lat,a.lng,b.lat,b.lng].map(function(x){return x.toFixed(4)}).join(',')}
- function evTxt(ev){return (ev&&ev.ft!==undefined)?ev.ft.toLocaleString():(ev==='err'?'–':'…')}
- // ความสูงภูมิประเทศสูงสุดต่อช่วง (Open-Meteo Elevation API, DEM ~90 ม.) สุ่มตัวอย่างตามเส้นทาง great-circle
- function loadElev(){
-  for(var i=1;i<pts.length;i++){
-   var a=pts[i-1],b=pts[i],k=legKey(a,b);
-   if(elevCache[k])continue;
-   elevCache[k]='pending';
-   (function(k,a,b){
-    var n=Math.min(99,Math.max(2,Math.ceil(dist(a,b)/2))),path=arc(a,b,n);
-    var la=path.map(function(p){return p[0].toFixed(4)}).join(','),
-        lo=path.map(function(p){return (((p[1]+540)%360)-180).toFixed(4)}).join(',');
-    fetch('https://api.open-meteo.com/v1/elevation?latitude='+la+'&longitude='+lo)
-     .then(function(r){return r.json()})
-     .then(function(j){
-      var e=j.elevation;if(!e||!e.length)throw new Error('no data');
-      var mi=0;e.forEach(function(v,x){if(v>e[mi])mi=x});
-      elevCache[k]={ft:Math.max(0,Math.round(e[mi]*3.28084)),pt:path[mi]};drawLines();
-     }).catch(function(){elevCache[k]='err';drawLines()});
-   })(k,a,b);
+var R_NM=3440.065, rad=Math.PI/180, deg=180/Math.PI;
+var UF={nm:1,km:1.852,mi:1.150779}, UL={nm:'NM',km:'KM',mi:'Mi'};
+var unit='nm', pts=[], pendingInsertIndex=null;
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+  });
+}
+function dms(d,m,s){ return d + m/60 + (s||0)/3600; }
+function dm(d,m){ return d + m/60; }
+
+function parseCoordInput(value,isLat){
+  var s=String(value||'').trim().toUpperCase();
+  if(!s) return NaN;
+
+  // Degrees Decimal Minutes (preferred)
+  // Examples:
+  // 13°54.750'N
+  // 13 54.750 N
+  // 100°36.400'E
+  var ddm=s.match(/^(\d{1,3})\s*[°\s]\s*(\d{1,2}(?:\.\d+)?)\s*['′\s]?\s*([NSEW])$/);
+  if(ddm){
+    var d=Number(ddm[1]);
+    var min=Number(ddm[2]);
+    var hem=ddm[3];
+
+    if(min>=60)return NaN;
+    if(isLat && d>90)return NaN;
+    if(!isLat && d>180)return NaN;
+
+    var out=d+(min/60);
+    if(hem==='S'||hem==='W')out=-out;
+
+    if(isLat && !/[NS]/.test(hem))return NaN;
+    if(!isLat && !/[EW]/.test(hem))return NaN;
+
+    return out;
   }
- }
 
- function dist(a,b){
+  // Compact DDM: DDMM.mmmN / DDDMM.mmmE
+  var compact=isLat
+    ? s.match(/^(\d{2})(\d{2}(?:\.\d+)?)([NS])$/)
+    : s.match(/^(\d{3})(\d{2}(?:\.\d+)?)([EW])$/);
+
+  if(compact){
+    var d2=Number(compact[1]);
+    var min2=Number(compact[2]);
+    var hem2=compact[3];
+
+    if(min2>=60)return NaN;
+    var out2=d2+(min2/60);
+    if(hem2==='S'||hem2==='W')out2=-out2;
+    return out2;
+  }
+
+  // Decimal degrees fallback
+  var dec=s.match(/^([+-]?\d+(?:\.\d+)?)\s*([NSEW])?$/);
+  if(dec){
+    var v=parseFloat(dec[1]);
+    var hem3=dec[2]||'';
+
+    if(hem3==='S'||hem3==='W')v=-Math.abs(v);
+    if(hem3==='N'||hem3==='E')v=Math.abs(v);
+
+    if(isLat && (v<-90||v>90))return NaN;
+    if(!isLat && (v<-180||v>180))return NaN;
+    return v;
+  }
+
+  return NaN;
+}
+
+function formatDDM(value,isLat){
+  var hem=isLat ? (value>=0?'N':'S') : (value>=0?'E':'W');
+  var av=Math.abs(value);
+  var d=Math.floor(av);
+  var min=(av-d)*60;
+  var degWidth=isLat?2:3;
+  return String(d).padStart(degWidth,'0')+'°'+min.toFixed(3).padStart(6,'0')+"'"+hem;
+}
+
+function waypointFromRadialDme(refLat,refLng,radialDeg,dmeNm){
+  return destinationPoint(refLat,refLng,radialDeg,dmeNm);
+}
+
+
+var sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+  maxZoom:18,attribution:'Imagery © Esri, Maxar, Earthstar Geographics'
+});
+var osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  maxZoom:19,attribution:'© OpenStreetMap contributors'
+});
+var topo=L.tileLayer('https://tile.opentopomap.org/{z}/{x}/{y}.png',{
+  maxZoom:17,attribution:'© OpenTopoMap, OpenStreetMap contributors'
+});
+
+var map=L.map('map',{center:[13.5,101],zoom:6,layers:[sat],worldCopyJump:true});
+var provLayer=L.layerGroup().addTo(map);
+var aptLayer=L.layerGroup().addTo(map);
+var prohibLayer=L.layerGroup().addTo(map);
+var restrictLayer=L.layerGroup().addTo(map);
+var dangerLayer=L.layerGroup().addTo(map);
+var notamLayer=L.layerGroup().addTo(map);
+var lightRptLayer=L.layerGroup();
+var heliRptLayer=L.layerGroup();
+var lineLayer=L.layerGroup().addTo(map);
+var markerLayer=L.layerGroup().addTo(map);
+var elevMark=L.layerGroup().addTo(map);
+var elevHoverLayer=L.layerGroup().addTo(map);
+
+var provPane=map.createPane('prov');
+provPane.style.zIndex=350;
+provPane.style.pointerEvents='none';
+
+var provURLs=[
+ 'https://cdn.jsdelivr.net/gh/chingchai/OpenGISData-Thailand/provinces.geojson',
+ 'https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/provinces.geojson',
+ 'https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/main/provinces.geojson'
+];
+function loadProv(i){
+  if(i>=provURLs.length) return;
+  fetch(provURLs[i]).then(function(r){
+    if(!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(function(g){
+    L.geoJSON(g,{
+      pane:'prov',
+      renderer:L.canvas({pane:'prov'}),
+      interactive:false,
+      style:{color:'#fff',weight:1,opacity:.7,fill:false}
+    }).addTo(provLayer);
+    (g.features||[]).forEach(function(f){
+      var pr=f.properties||{};
+      var nm=pr.pro_th||pr.PROV_NAMT||pr.prov_th||pr.name_th||pr.NAME_1||'';
+      if(!nm) return;
+      var c=L.geoJSON(f).getBounds().getCenter();
+      L.marker(c,{interactive:false,icon:L.divIcon({className:'provlbl',html:esc(nm)})}).addTo(provLayer);
+    });
+  }).catch(function(){loadProv(i+1);});
+}
+loadProv(0);
+
+/*
+  Airport records used by this planner.
+  Critical corrections from AIP Thailand:
+  - VTBL = Lop Buri / Khok Kathiam (Wing 2), ARP 145228.7N 1003948.2E, elev 133 ft.
+  - VTBI = Prachin Buri
+  - VTUP = Nakhon Ratchasima / Pak Chong (do not use VTUP for Wing 2)
+  - duplicate VTUU and false VTUB entry removed.
+*/
+var AP=[
+ ['VTBS','BKK','สุวรรณภูมิ','สมุทรปราการ',13.6858,100.7489,4,''],
+ ['VTBD','DMK','ดอนเมือง','กรุงเทพฯ',13.9144,100.6057,9,''],
+ ['VTBU','UTP','อู่ตะเภา ระยอง พัทยา','ระยอง',12.6796,101.0049,59,''],
+ ['VTSP','HKT','ภูเก็ต','ภูเก็ต',8.1125,98.3092,84,''],
+ ['VTSG','KBV','กระบี่','กระบี่',8.1002,98.9853,93,''],
+ ['VTSS','HDY','หาดใหญ่','สงขลา',6.9328,100.3950,90,''],
+ ['VTSM','USM','สมุย','สุราษฎร์ธานี',9.5489,100.0625,64,''],
+ ['VTCC','CNX','เชียงใหม่','เชียงใหม่',18.7714,98.9628,1036,''],
+ ['VTCT','CEI','แม่ฟ้าหลวง เชียงราย','เชียงราย',19.9523,99.8829,1280,''],
+ ['VTPP','PHS','พิษณุโลก','พิษณุโลก',16.7829,100.2791,145,''],
+ ['VTUD','UTH','อุดรธานี','อุดรธานี',17.3864,102.7882,579,''],
+ ['VTUK','KKC','ขอนแก่น','ขอนแก่น',16.4666,102.7837,681,''],
+ ['VTUU','UBP','อุบลราชธานี / กองบิน 21','อุบลราชธานี',15.2513,104.8703,406,''],
+ ['VTST','TST','ตรัง','ตรัง',7.5086,99.6158,67,''],
+ ['VTUW','KOP','นครพนม','นครพนม',17.3853,104.6419,587,''],
+ ['VTUO','BFV','บุรีรัมย์','บุรีรัมย์',15.2268,103.2512,590,''],
+ ['VTCN','NNT','น่าน นคร','น่าน',18.8079,100.7834,685,''],
+ ['VTPH','HHQ','หัวหิน','ประจวบคีรีขันธ์',12.6303,99.9534,62,''],
+ ['VTCI','PYY','ปาย','แม่ฮ่องสอน',19.3720,98.4359,1676,''],
+ ['VTCH','HGN','แม่ฮ่องสอน','แม่ฮ่องสอน',19.3017,97.9751,929,''],
+ ['VTCL','LPT','ลำปาง','ลำปาง',18.2721,99.5041,811,''],
+ ['VTCP','PRH','แพร่','แพร่',18.1317,100.1646,538,''],
+ ['VTPM','MAQ','แม่สอด','ตาก',16.6998,98.5435,690,''],
+ ['VTPO','THS','สุโขทัย','สุโขทัย',17.2378,99.8183,179,''],
+ ['VTPB','PHY','เพชรบูรณ์','เพชรบูรณ์',16.6760,101.1951,450,''],
+ ['VTPN','','นครสวรรค์','นครสวรรค์',15.6725,100.1360,113,''],
+ ['VTPI','','ตาคลี / กองบิน 4','นครสวรรค์',15.2773,100.2959,103,''],
+ ['VTBP','','ประจวบคีรีขันธ์ / กองบิน 5','ประจวบคีรีขันธ์',11.7884,99.8046,17,''],
+ ['VTBW','','วัฒนานคร','สระแก้ว',13.7688,102.3156,225,''],
+ ['VTBO','TDX','ตราด','ตราด',12.2753,102.3200,82,''],
+ ['VTUQ','NAK','นครราชสีมา','นครราชสีมา',14.9495,102.3127,765,''],
+ ['VTUN','','โคราช / กองบิน 1','นครราชสีมา',14.9333,102.0833,729,''],
+ ['VTUP','','ปากช่อง','นครราชสีมา',14.70,101.42,0,'Location indicator verified; coordinate shown for map convenience only'],
+ ['VTBI','','ปราจีนบุรี','ปราจีนบุรี',14.05,101.37,0,'Location indicator verified; coordinate shown for map convenience only'],
+ ['VTUL','LOE','เลย','เลย',17.4391,101.7221,860,''],
+ ['VTUI','SNO','สกลนคร','สกลนคร',17.1951,104.1186,529,''],
+ ['VTUV','ROI','ร้อยเอ็ด','ร้อยเอ็ด',16.1168,103.7738,451,''],
+ ['VTSE','CJM','ชุมพร','ชุมพร',10.7112,99.3617,22,''],
+ ['VTSB','URT','สุราษฎร์ธานี','สุราษฎร์ธานี',9.1361,99.1390,20,''],
+ ['VTSR','UNN','ระนอง','ระนอง',9.7776,98.5855,57,''],
+ ['VTSF','NST','นครศรีธรรมราช','นครศรีธรรมราช',8.5396,99.9447,13,''],
+ ['VTSN','','ฉะเอียน','นครศรีธรรมราช',8.4639,99.9583,44,''],
+ ['VTSH','','สงขลา','สงขลา',7.1857,100.6088,12,''],
+ ['VTSK','PAN','ปัตตานี','ปัตตานี',6.7857,101.1536,8,''],
+ ['VTSC','NAW','นราธิวาส','นราธิวาส',6.5232,101.7448,18,''],
+ ['VTSY','','เบตง','ยะลา',5.7888,101.1472,738,''],
+ ['VTBK','','กำแพงแสน','นครปฐม',dms(14,6,7.23),dms(99,55,2.13),32,'AIP: Nakhon Pathom / Kamphaeng Saen; IFR/VFR; RTAF'],
+ ['VTBL','','โคกกะเทียม / กองบิน 2','ลพบุรี',dms(14,52,28.7),dms(100,39,48.2),133,
+   'AIP: RWY 16/34 2200 m; RWY 05/23 1340 m; ILS CAT I RWY 05']
+];
+
+var APX={};
+AP.forEach(function(a){ APX[a[0]]=a; });
+
+AP.forEach(function(a){
+  var m=L.marker([a[4],a[5]],{
+    icon:L.divIcon({className:'',html:'<span class="apt">✈ '+esc(a[0])+'</span>',iconSize:[0,0]})
+  }).addTo(aptLayer);
+  var extra=a[7]?'<br><span style="color:#8fa8bd">'+esc(a[7])+'</span>':'';
+  m.bindPopup(
+    '<div class="ap"><h4>'+esc(a[0])+(a[1]?' / '+esc(a[1]):'')+'</h4>'+
+    '<div>'+esc(a[2])+' จ.'+esc(a[3])+
+    (a[6]?'<br>AD Elev '+a[6]+' ft':'')+extra+'</div>'+
+    '<button type="button">เพิ่มเป็นจุดบิน</button></div>'
+  );
+  m.on('popupopen',function(e){
+    var btn=e.popup.getElement().querySelector('button');
+    if(btn) btn.onclick=function(){addPt(a[4],a[5],a[0]);map.closePopup();};
+  });
+});
+
+/*
+  Selected AIP Thailand ENR 5.1 records verified against AIRAC source.
+  The database intentionally avoids invented airspace. Add more only from official ENR 5.1.
+*/
+var AIRSPACES_DB=[
+/* ======================= PROHIBITED (VTP) ======================= */
+{type:'P',shape:'polygon',id:'VTP4',name:'MUANG KOM',color:'#ff1a1a',limits:'FL240 / GND',activity:'MON-FRI H24',desc:'RTAF Flying Training; Bombing / Air Firing. AMC Manageable Area.',points:[[dms(15,7,0),dms(100,59,0)],[dms(15,7,0),dms(100,50,0)],[dms(14,55,0),dms(100,50,0)],[dms(14,55,0),dms(100,59,0)]]},
+{type:'P',shape:'circle',id:'VTP7',name:'SATTAHIP',color:'#ff1a1a',limits:'UNL / GND',activity:'H24',desc:'Naval Base / National security area.',lat:dms(12,38,45),lng:dms(100,53,0),radiusNM:4},
+{type:'P',shape:'sector',id:'VTP36',name:'KHAO SOIDAO TAI',color:'#ff1a1a',limits:'ALT 5,000 FT / GND',activity:'Sunset to Sunrise',desc:'RTN Area / Military operations.',lat:dms(12,56,13),lng:dms(102,12,50),radiusNM:17,startBearing:0,endBearing:180},
+{type:'P',shape:'sector',id:'VTP37',name:'KHAO KHLONG OA',color:'#ff1a1a',limits:'ALT 5,000 FT / GND',activity:'Sunset to Sunrise',desc:'RTN Area / Military operations.',lat:dms(12,34,19),lng:dms(102,36,35),radiusNM:14,startBearing:135,endBearing:315},
+{type:'P',shape:'polygon',id:'VTP38',name:'KO CHANG - KO KHUD',color:'#ff1a1a',limits:'ALT 5,000 FT / GND',activity:'Sunset to Sunrise',desc:'RTN Area / Military operations.',points:[[dms(12,17,37),dms(102,14,24)],[dms(12,9,45),dms(102,34,32)],[dms(11,46,30),dms(102,53,24)],[dms(11,38,0),dms(102,55,30)],[dms(11,30,0),dms(102,30,0)],[dms(12,0,0),dms(102,11,0)]]},
+
+/* ======================= RESTRICTED (VTR) ======================= */
+{type:'R',shape:'circle',id:'VTR1',name:'BANGKOK CITY',color:'#ff944d',limits:'ALT 3,000 FT / GND',activity:'H24',desc:'Congested Area.',lat:dms(13,45,54),lng:dms(100,32,18),radiusNM:10},
+{type:'R',shape:'circle',id:'VTR2',name:'CHITRLADA PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'H24',desc:'Royal Residence Area.',lat:dms(13,46,5.18),lng:dms(100,31,16.44),radiusNM:1},
+{type:'R',shape:'circle',id:'VTR3',name:'HUA HIN PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'Notified by NOTAM',desc:'Royal Residence Area.',lat:dms(12,35,22.19),lng:dms(99,57,10.69),radiusNM:1},
+{type:'R',shape:'circle',id:'VTR5',name:'PHU PHING PALACE',color:'#ff944d',limits:'ALT 12,000 FT / GND',activity:'Notified by NOTAM',desc:'Royal Residence Area.',lat:dms(18,48,20),lng:dms(98,53,57),radiusNM:2},
+{type:'R',shape:'circle',id:'VTR6',name:'THAK SIN PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'Notified by NOTAM',desc:'Royal Residence Area.',lat:dms(6,25,22.11),lng:dms(101,52,18.93),radiusNM:5},
+{type:'R',shape:'polygon',id:'VTR8',name:'KAMPHAENG SAEN JETTISON',color:'#ff944d',limits:'ALT 7,000 FT / GND',activity:'H24',desc:'RTAF Jettison Area.',points:[[dms(12,53,0),dms(100,20,0)],[dms(12,53,0),dms(100,25,0)],[dms(12,35,0),dms(100,17,0)],[dms(12,35,0),dms(100,11,30)]]},
+{type:'R',shape:'circle',id:'VTR11',name:'KO HIN CHALAM, SATTAHIP',color:'#ff944d',limits:'UNL / GND',activity:'H24',desc:'RTN Jettison / Ground and Air Gunnery Area.',lat:dms(12,27,53),lng:dms(100,58,19),radiusNM:2},
+{type:'R',shape:'circle',id:'VTR12',name:'KO LUAM, PRACHUAP KHIRI KHAN',color:'#ff944d',limits:'ALT 9,000 FT / GND',activity:'Notified by NOTAM',desc:'RTN Jettison Area.',lat:dms(11,45,30),lng:dms(99,50,0),radiusNM:.5},
+{type:'R',shape:'circle',id:'VTR13',name:'KO SAMET, RAYONG',color:'#ff944d',limits:'UNL / GND',activity:'H24',desc:'RTN Jettison / Ground Gunnery Area.',lat:dms(12,12,0),lng:dms(101,21,0),radiusNM:7.1},
+{type:'R',shape:'polygon',id:'VTR15',name:'UBON',color:'#ff944d',limits:'ALT 8,000 FT / GND',activity:'H24',desc:'RTAF Flying Training / High speed combat manoeuvring.',points:[[dms(15,10,13),dms(104,56,10)],[dms(15,10,46),dms(104,56,42)],[dms(15,10,46),dms(104,57,49)],[dms(15,9,42),dms(104,56,49)],[dms(15,9,42),dms(104,56,42)]]},
+{type:'R',shape:'polygon',id:'VTR51',name:'SONGKHLA',color:'#ff944d',limits:'ALT 5,000 FT / GND',activity:'Sunrise to Sunset',desc:'RTAF Jettison Area.',points:[[dm(7,17),dm(99,54)],[dm(7,17),dm(99,59)],[dm(7,15),dm(99,59)],[dm(7,13),dm(99,54)]]},
+{type:'R',shape:'polygon',id:'VTR52',name:'SONGKHLA',color:'#ff944d',limits:'ALT 8,000 FT / GND',activity:'Sunrise to Sunset',desc:'RTAF Jettison Area.',points:[[dm(6,29),dm(100,32)],[dm(6,36),dm(100,32)],[dm(6,36),dm(100,38)],[dm(6,29),dm(100,38)]]},
+{type:'R',shape:'polygon',id:'VTR62',name:'EASTERN AREA',color:'#ff944d',limits:'ALT 13,000 FT / GND',activity:'Sunset to Sunrise',desc:'RTN Area. Border segment follows Thai-Cambodian boundary; map joins published vertices as planning visualization.',geometryNote:'Contains Thai-Cambodian border segment.',points:[[dms(11,38,0),dms(102,55,30)],[dms(11,30,0),dms(102,30,0)],[dms(12,9,45),dms(102,34,32)],[dms(12,56,13),dms(102,12,50)],[dms(13,50,0),dms(102,12,50)],[dms(14,28,0),dms(103,10,0)],[dms(14,45,0),dms(104,0,0)],[dms(14,45,0),dms(104,41,0)],[dms(14,24,0),dms(104,51,0)]]},
+{type:'R',shape:'circle',id:'VTR66',name:'PHU PHAN PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'Notified by NOTAM',desc:'Royal Residence Area.',lat:dms(17,7,38.10),lng:dms(104,1,19.76),radiusNM:5},
+{type:'R',shape:'polygon',id:'VTR68',name:'NAM PHONG',color:'#ff944d',limits:'FL150 / GND',activity:'MON-FRI 0000-1000 UTC',desc:'RTAF Jettison Area.',points:[[dms(16,40,48.58),dms(102,55,59.19)],[dms(16,38,10.90),dms(102,56,5.94)],[dms(16,40,49.25),dms(102,57,6.67)],[dms(16,38,14.77),dms(102,57,8.31)]]},
+{type:'R',shape:'circle',id:'VTR79',name:'PHIMANMAS PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'Notified by NOTAM',desc:'Royal Residence Area.',lat:dms(12,39,8),lng:dms(100,58,48),radiusNM:.5},
+{type:'R',shape:'circle',id:'VTR80',name:'SRAPATHUM PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'H24',desc:'Royal Residence Area.',lat:dms(13,44,52.69),lng:dms(100,31,55.92),radiusNM:1},
+{type:'R',shape:'circle',id:'VTR81',name:'JAKRIBONGKOT PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'H24',desc:'Royal Residence Area.',lat:dms(13,56,48.31),lng:dms(100,31,26.90),radiusNM:1},
+{type:'R',shape:'circle',id:'VTR82',name:'AMPHORN ROYAL PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'H24',desc:'Royal Residence Area.',lat:dms(13,46,21.50),lng:dms(100,30,40.28),radiusNM:1},
+{type:'R',shape:'circle',id:'VTR83',name:'SUKOTHAI PALACE',color:'#ff944d',limits:'ALT 6,000 FT / GND',activity:'H24',desc:'Royal Residence Area.',lat:dms(13,46,56.66),lng:dms(100,30,33.51),radiusNM:1},
+{type:'R',shape:'circle',id:'VTR84',name:'TIPPIMARN PALACE',color:'#ff944d',limits:'ALT 7,500 FT / GND',activity:'H24',desc:'Royal Residence Area.',lat:dms(14,29,29.82),lng:dms(101,31,45.88),radiusNM:1},
+
+/* ========================= DANGER (VTD) ========================= */
+{type:'D',shape:'polygon',id:'VTD2',name:'LOP BURI',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'MON-FRI 0000-1000 UTC',desc:'RTAF Flying Training / High speed combat manoeuvring. AMC Manageable Area.',points:[[dms(15,7,16),dms(100,10,10)],[dms(15,7,0),dms(100,50,0)],[dms(14,55,0),dms(100,50,0)],[dms(14,55,0),dms(101,5,25)],[dms(14,42,37),dms(101,5,29)],[dms(14,36,37),dms(101,5,25)],[dms(14,37,0),dms(100,9,0)]]},
+{type:'D',shape:'polygon',id:'VTD3A',name:'KABIN BURI/WATTANA NAKHON, PRACHIN BURI',color:'#ffcc00',limits:'FL140 / GND',activity:'MON-FRI 0000-1000 UTC',desc:'AMC Manageable Area. Border segment follows national boundary.',geometryNote:'Contains border segment.',points:[[dms(13,59,0),dms(102,20,0)],[dms(13,59,0),dms(102,50,43)],[dms(13,30,0),dms(102,21,38)],[dms(13,30,0),dms(102,20,0)]]},
+{type:'D',shape:'polygon',id:'VTD3B',name:'KABIN BURI/WATTANA NAKHON, PRACHIN BURI',color:'#ffcc00',limits:'FL140 / GND',activity:'MON-FRI 0000-1000 UTC',desc:'AMC Manageable Area.',points:[[dms(13,59,0),dms(101,54,0)],[dms(13,59,0),dms(102,20,0)],[dms(13,30,0),dms(102,20,0)],[dms(13,30,0),dms(101,54,0)]]},
+{type:'D',shape:'polygon',id:'VTD5A',name:'PRACHUAP KHIRI KHAN',color:'#ffcc00',limits:'ALT 6,500 FT / GND',activity:'MON-FRI 0000-1000 UTC',desc:'AMC Manageable Area; boundary segment simplified between published vertices.',geometryNote:'Contains boundary segment.',points:[[dms(12,8,0),dms(99,34,9)],[dms(12,8,0),dms(100,9,53)],[dms(11,47,0),dms(100,3,47)],[dms(11,47,0),dms(99,38,51)]]},
+{type:'D',shape:'polygon',id:'VTD5B',name:'PRACHUAP KHIRI KHAN',color:'#ffcc00',limits:'ALT 6,500 FT / GND',activity:'MON-FRI 0000-1000 UTC',desc:'AMC Manageable Area; boundary segment simplified between published vertices.',geometryNote:'Contains boundary segment.',points:[[dms(11,47,0),dms(99,38,51)],[dms(11,47,0),dms(100,3,47)],[dms(11,26,51),dms(99,54,58)],[dms(11,26,51),dms(99,24,22)]]},
+{type:'D',shape:'polygon',id:'VTD6A',name:'BANGKOK, NONTHABURI, NAKHON PATHOM, SUPHANBURI',color:'#ffcc00',limits:'ALT 5,000 FT / GND',activity:'EVERYDAY 2300-1000 UTC',desc:'AMC Manageable Area.',points:[[dms(14,18,11),dms(100,25,1)],[dms(14,18,20),dms(100,40,15)],[dms(13,58,20),dms(100,26,41)],[dms(14,5,0),dms(100,12,51)]]},
+{type:'D',shape:'polygon',id:'VTD6B',name:'BANGKOK, NONTHABURI, NAKHON PATHOM, SUPHANBURI',color:'#ffcc00',limits:'ALT 5,000 FT / GND',activity:'EVERYDAY 2300-1000 UTC',desc:'AMC Manageable Area.',points:[[dms(14,5,0),dms(100,12,51)],[dms(13,58,20),dms(100,26,41)],[dms(13,46,4),dms(100,22,25)],[dms(13,46,30),dms(100,12,55)]]},
+{type:'D',shape:'polygon',id:'VTD8A',name:'RATCHABURI',color:'#ffcc00',limits:'FL460 / GND',activity:'MON-FRI 0000-1100 UTC',desc:'AMC Manageable Area; coastline segment simplified.',geometryNote:'Contains coastline segment.',points:[[dms(13,49,0),dms(99,23,0)],[dms(13,54,10),dms(99,58,19)],[dms(13,26,4),dms(100,7,7)],[dms(13,0,0),dms(100,4,14)],[dms(13,0,0),dms(99,40,0)]]},
+{type:'D',shape:'polygon',id:'VTD8B',name:'RATCHABURI',color:'#ffcc00',limits:'ALT 12,000 FT / GND',activity:'MON-FRI 0000-1100 UTC',desc:'AMC Manageable Area; coastline segment simplified.',geometryNote:'Contains coastline segment.',points:[[dms(13,32,0),dms(100,16,0)],[dms(13,28,6),dms(100,13,20)],[dms(13,26,4),dms(100,7,7)],[dms(13,54,10),dms(99,58,19)],[dms(13,56,0),dms(100,11,0)],[dms(13,48,0),dms(100,11,0)]]},
+{type:'D',shape:'polygon',id:'VTD8C',name:'KANCHANABURI',color:'#ffcc00',limits:'ALT 9,000 FT / GND',activity:'MON-FRI 0000-1100 UTC',desc:'AMC Manageable Area. 45 NM BKK VOR/DME arc represented by published endpoints.',geometryNote:'Arc simplified for map display.',points:[[dms(13,52,53),dms(99,49,30)],[dms(13,49,0),dms(99,23,0)],[dms(14,15,0),dms(99,23,0)],[dms(14,9,30),dms(99,52,26)]]},
+{type:'D',shape:'polygon',id:'VTD8D',name:'KANCHANABURI',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'MON-FRI 0000-1100 UTC',desc:'AMC Manageable Area. 45 NM BKK VOR/DME arc represented by published endpoints.',geometryNote:'Arc simplified for map display.',points:[[dms(13,56,0),dms(100,11,0)],[dms(13,52,53),dms(99,49,30)],[dms(14,9,30),dms(99,52,26)],[dms(14,6,0),dms(100,11,0)]]},
+{type:'D',shape:'polygon',id:'VTD8E',name:'SUPHAN BURI',color:'#ffcc00',limits:'ALT 8,000 FT / GND',activity:'MON-FRI 0000-1100 UTC',desc:'AMC Manageable Area. 45 NM BKK VOR/DME arc represented by published endpoints.',geometryNote:'Arc simplified for map display.',points:[[dms(14,9,30),dms(99,52,26)],[dms(14,15,0),dms(99,23,0)],[dms(14,54,0),dms(99,57,0)],[dms(14,33,4),dms(100,13,10)]]},
+{type:'D',shape:'polygon',id:'VTD8F',name:'SUPHAN BURI',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'MON-FRI 0000-1100 UTC',desc:'AMC Manageable Area. 45 NM BKK VOR/DME arc represented by published endpoints.',geometryNote:'Arc simplified for map display.',points:[[dms(14,6,0),dms(100,11,0)],[dms(14,9,30),dms(99,52,26)],[dms(14,33,4),dms(100,13,10)],[dms(14,19,0),dms(100,24,0)]]},
+{type:'D',shape:'polygon',id:'VTD8G',name:'SUPHAN BURI',color:'#ffcc00',limits:'ALT 8,000 FT / GND',activity:'MON-FRI 0000-1100 UTC',desc:'AMC Manageable Area.',points:[[dms(14,25,58),dms(99,23,0)],[dms(14,25,58),dms(99,32,32)],[dms(14,15,0),dms(99,23,0)]]},
+{type:'D',shape:'polygon',id:'VTD20',name:'HUA HIN',color:'#ffcc00',limits:'ALT 11,000 FT / GND',activity:'Sunrise to Sunset',desc:'Civil Flight Training Area. 30 NM HHN arc is simplified between published endpoints.',geometryNote:'Arc/exclusions not geometrically subtracted.',points:[[dm(13,0),dm(99,37)],[dm(13,0),dm(100,10)],[dm(12,10),dm(100,10)]]},
+{type:'D',shape:'polygon',id:'VTD21-A1',displayId:'VTD21',name:'SATTAHIP BAY - AREA 1',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',points:[[dm(12,20),dm(100,30)],[dm(12,40),dm(100,30)],[dm(12,40),dm(100,40.8)],[dm(12,20),dm(100,40.8)]]},
+{type:'D',shape:'polygon',id:'VTD21-A2',displayId:'VTD21',name:'SATTAHIP BAY - AREA 2',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',points:[[dm(12,20),dm(100,40.8)],[dm(12,40),dm(100,40.8)],[dm(12,40),dm(100,58)],[dm(12,20),dm(100,58)]]},
+{type:'D',shape:'polygon',id:'VTD21-A3',displayId:'VTD21',name:'SATTAHIP BAY - AREA 3',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',points:[[dm(12,20),dm(100,58)],[dm(12,37),dm(100,58)],[dm(12,37),dm(101,15)],[dm(12,20),dm(101,15)]]},
+{type:'D',shape:'polygon',id:'VTD22',name:'KO KHRAM, SATTAHIP',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',points:[[dm(12,51.3),dm(100,40)],[dm(12,51.3),dm(100,51)],[dm(12,40),dm(100,51)],[dm(12,40),dm(100,40)]]},
+{type:'D',shape:'polygon',id:'VTD23',name:'KO PHAI',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',points:[[dm(12,50),dm(100,30)],[dm(13,5),dm(100,30)],[dm(13,5),dm(100,45)],[dm(12,50),dm(100,45)]]},
+{type:'D',shape:'circle',id:'VTD24',name:'KO CHANG, TRAT',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',lat:dm(12,3.1),lng:dm(102,14.6),radiusNM:5},
+{type:'D',shape:'circle',id:'VTD25',name:'KO TAO, CHUMPHON',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Weapon Training Range.',lat:dm(9,56.6),lng:dm(99,59.8),radiusNM:5},
+{type:'D',shape:'polygon',id:'VTD26',name:'CHONG SAMAE SAN, SATTAHIP',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',points:[[dm(12,33.5),dm(100,55.3)],[dm(12,37.3),dm(100,55.3)],[dm(12,37.3),dm(100,57.3)],[dm(12,33.5),dm(100,57.3)]]},
+{type:'D',shape:'polygon',id:'VTD27',name:'PONG NAM RON, CHANTHABURI',color:'#ffcc00',limits:'ALT 8,000 FT / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',points:[[dm(12,55.2),dm(102,17.1)],[dm(12,50.6),dm(102,20.4)],[dm(12,55.8),dm(102,22.8)],[dm(12,59.5),dm(102,21.4)]]},
+{type:'D',shape:'polygon',id:'VTD28',name:'SATTAHIP',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Gun Training Range.',points:[[dm(12,50.5),dm(100,49.7)],[dm(12,51.3),dm(100,51.7)],[dm(12,46.8),dm(100,53.5)],[dm(12,45.8),dm(100,51.6)]]},
+{type:'D',shape:'circle',id:'VTD29',name:'HIN RAKIT PATTANI',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Weapon Training Range.',lat:dm(6,44),lng:dm(101,44),radiusNM:3},
+{type:'D',shape:'polygon',id:'VTD30-A1',displayId:'VTD30',name:'W NAKHON RATCHASIMA - AREA 1',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2300-1000 UTC',desc:'RTAF Flying Training.',points:[[dms(14,49,5.7),dms(101,15,47.8)],[dms(16,20,5.4),dms(102,10,47.3)],[dms(16,4,5.5),dms(102,28,47.2)],[dms(14,59,35.7),dms(101,59,47.5)],[dms(14,43,5.8),dms(101,22,47.8)]]},
+{type:'D',shape:'polygon',id:'VTD30-A2',displayId:'VTD30',name:'W NAKHON RATCHASIMA - AREA 2',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2300-1000 UTC',desc:'RTAF Flying Training.',points:[[dms(15,9,5.7),dms(102,19,47.3)],[dms(16,0,5.5),dms(102,42,47.1)],[dms(15,49,5.6),dms(103,21,46.8)],[dms(15,13,5.7),dms(103,21,46.8)]]},
+{type:'D',shape:'circle',id:'VTD32',name:'NAKHON RATCHASIMA',color:'#ffcc00',limits:'ALT 5,500 FT / GND',activity:'MON-FRI 2300-1400 UTC',desc:'RTAF Flying Training. AIP excludes Khorat CTR and Buri Ram TMA; exclusions are not subtracted in this visualization.',geometryNote:'CTR/TMA exclusions not subtracted.',lat:dms(14,56,6.0),lng:dms(102,4,21.8),radiusNM:50},
+{type:'D',shape:'polygon',id:'VTD33-A1',displayId:'VTD33',name:'NAKHON SAWAN, CHAI NAT - AREA 1',color:'#ffcc00',limits:'FL240 / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training.',points:[[dms(15,41,25.79),dms(99,43,45.28)],[dms(15,41,24.14),dms(99,51,22.80)],[dms(15,6,56.33),dms(100,2,38.89)],[dms(15,0,6.18),dms(99,57,17.24)]]},
+{type:'D',shape:'polygon',id:'VTD33-A2',displayId:'VTD33',name:'NAKHON SAWAN, CHAI NAT - AREA 2',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training; national-boundary segment simplified.',geometryNote:'Contains boundary segment.',points:[[dms(16,37,5.34),dms(99,25,23.13)],[dms(15,41,25.79),dms(99,43,45.28)],[dms(15,0,6.18),dms(99,57,17.24)],[dms(15,0,12.17),dms(99,23,27.39)],[dms(15,38,47.73),dms(98,34,17.53)],[dms(16,35,8.84),dms(98,35,22.41)],[dms(16,37,5.10),dms(98,52,48.80)]]},
+{type:'D',shape:'polygon',id:'VTD34-A1',displayId:'VTD34',name:'PHETCHABUN, PHICHIT - AREA 1',color:'#ffcc00',limits:'FL280 / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training. 30 NM PSL arc simplified; Airway W21 exclusion not subtracted.',geometryNote:'Arc and airway exclusion simplified.',points:[[dms(15,13,5.60),dms(101,1,47.90)],[dms(15,13,5.60),dms(100,26,48.10)],[dms(15,24,5.50),dms(100,21,48.20)],[dms(16,16,23.05),dms(100,21,48.10)],[dms(16,34,58.20),dms(100,46,28.25)],[dms(16,32,5.30),dms(101,26,47.60)]]},
+{type:'D',shape:'polygon',id:'VTD34-A2',displayId:'VTD34',name:'PHETCHABUN, PHICHIT - AREA 2',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training. 30 NM PSL arc simplified; Airway W21 exclusion not subtracted.',geometryNote:'Arc and airway exclusion simplified.',points:[[dms(15,13,5.60),dms(101,1,47.90)],[dms(15,13,5.69),dms(100,28,3.35)],[dms(15,32,22.66),dms(100,21,48.11)],[dms(16,16,23.05),dms(100,21,48.10)],[dms(16,34,58.20),dms(100,46,28.25)],[dms(16,32,5.30),dms(101,26,47.60)]]},
+{type:'D',shape:'polygon',id:'VTD41A',name:'MAE RIM, CHIANG MAI',color:'#ffcc00',limits:'FL460 / GND',activity:'MON-FRI 0000-1000 UTC',desc:'AMC Manageable Area. Border/10 NM CHM arc and TMA exclusions simplified.',geometryNote:'Border/arc/TMA exclusions simplified.',points:[[dms(19,41,29),dms(98,16,54)],[dms(20,20,15),dms(99,48,29)],[dms(18,52,19),dms(99,48,29)],[dms(18,51,16),dms(99,7,19)],[dms(18,56,10),dms(98,56,57)]]},
+{type:'D',shape:'polygon',id:'VTD41B',name:'CHOM THONG, CHIANG MAI',color:'#ffcc00',limits:'FL460 / GND',activity:'MON-FRI 0000-1000 UTC',desc:'AMC Manageable Area. Thai-Myanmar border segment simplified.',geometryNote:'Contains border segment.',points:[[dms(18,47,0),dms(97,45,43)],[dms(18,47,0),dms(98,48,0)],[dms(18,20,0),dms(98,58,0)],[dms(17,41,21),dms(98,58,0)],[dms(17,30,0),dms(98,0,0)]]},
+{type:'D',shape:'polygon',id:'VTD43',name:'LOP BURI',color:'#ffcc00',limits:'FL350 / GND',activity:'MON-FRI 0100-0900 UTC',desc:'RTAF Flying Training.',points:[[dms(15,13,5.6),dms(100,47,48.0)],[dms(16,27,5.3),dms(101,55,47.4)],[dms(16,20,5.4),dms(102,10,47.3)],[dms(14,49,5.7),dms(101,15,47.8)]]},
+{type:'D',shape:'polygon',id:'VTD44',name:'UBON, YASOTHON',color:'#ffcc00',limits:'FL200 / GND',activity:'MON-FRI 2300-1000 UTC',desc:'RTAF Flying Training.',points:[[dms(15,21,0),dms(104,38,0)],[dms(15,21,0),dms(103,22,0)],[dms(16,15,0),dms(103,22,0)]]},
+{type:'D',shape:'polygon',id:'VTD45',name:'UBON, SI SA KET',color:'#ffcc00',limits:'UNL / ALT 3,000 FT',activity:'MON-FRI 2200-1300 UTC',desc:'RTAF Flying Training; international-boundary segment simplified.',geometryNote:'Contains boundary segment.',points:[[dms(14,58,0),dms(105,37,0)],[dms(15,4,0),dms(105,0,0)],[dms(15,2,0),dms(104,52,0)],[dms(14,38,0),dms(103,40,0)],[dms(14,25,0),dms(103,40,0)]]},
+{type:'D',shape:'polygon',id:'VTD46',name:'NAKHON RATCHASIMA',color:'#ffcc00',limits:'FL200 / GND',activity:'MON-FRI 2300-1000 UTC',desc:'RTAF Flying Training. 20 NM KRT TACAN arc/boundary segment simplified.',geometryNote:'Arc/boundary simplified.',points:[[dms(14,36,0),dms(102,2,0)],[dms(14,51,0),dms(102,25,0)],[dms(14,51,0),dms(103,25,0)],[dms(14,22,0),dms(103,25,0)],[dms(13,56,0),dms(102,47,0)],[dms(13,56,0),dms(101,56,0)]]},
+{type:'D',shape:'polygon',id:'VTD47',name:'SAMUT SAKHON',color:'#ffcc00',limits:'UNL / FL120',activity:'MON-FRI 0130-0930 UTC',desc:'AMC Manageable Area. Coastline segment simplified.',geometryNote:'Contains coastline segment.',points:[[dms(13,47,0),dms(100,27,0)],[dms(13,38,0),dms(100,27,0)],[dms(13,29,0),dms(100,21,0)],[dms(13,32,0),dms(100,16,0)],[dms(13,48,0),dms(100,11,0)]]},
+{type:'D',shape:'polygon',id:'VTD54',name:'UBON',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training. 15 NM UBL TACAN arc simplified.',geometryNote:'Arc simplified.',points:[[dms(15,29,0),dms(104,49,0)],[dms(15,29,0),dms(104,53,0)],[dms(16,14,0),dms(104,55,0)],[dms(16,14,0),dms(104,9,0)]]},
+{type:'D',shape:'polygon',id:'VTD55',name:'UBON',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training. 15 NM UBL TACAN and FIR-boundary segments simplified.',geometryNote:'Arc/FIR boundary simplified.',points:[[dms(15,29,0),dms(104,53,0)],[dms(16,14,0),dms(104,55,0)],[dms(16,14,0),dms(105,1,0)],[dms(15,36,0),dms(105,37,0)],[dms(15,27,0),dms(105,0,0)]]},
+{type:'D',shape:'polygon',id:'VTD56',name:'SONGKHLA',color:'#ffcc00',limits:'FL460 / GND',activity:'MON-FRI 0000-1000 UTC',desc:'AMC Manageable Area.',points:[[dms(8,8,43),dms(100,39,41)],[dms(8,18,26),dms(100,51,59)],[dms(6,56,0),dms(101,25,0)],[dms(6,56,0),dms(100,46,0)],[dms(7,11,0),dms(100,37,0)]]},
+{type:'D',shape:'polygon',id:'VTD58',name:'SURAT THANI',color:'#ffcc00',limits:'FL390 / GND',activity:'Notified by NOTAM',desc:'RTAF Flying Training. Border and 30 NM PUT arc simplified.',geometryNote:'Border/arc simplified.',points:[[dms(11,25,54.32),dms(99,23,54.41)],[dms(10,51,29.09),dms(99,40,16.74)],[dms(9,25,18),dms(99,40,6)],[dms(8,33,1.22),dms(98,33,31.55)],[dms(8,36,25.96),dms(98,24,32.98)],[dms(9,8,18),dms(97,51,18)],[dms(9,29,0),dms(97,16,0)],[dms(9,50,0),dms(98,25,0)],[dms(10,0,4.46),dms(98,37,5.87)]]},
+{type:'D',shape:'polygon',id:'VTD59-A1',displayId:'VTD59',name:'SURAT THANI - AREA 1',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2300-1700 UTC',desc:'RTAF Flying Training. Border/DME arcs and CTR/TMA exclusions simplified.',geometryNote:'Border/arcs/exclusions simplified.',points:[[dm(10,58),dm(99,6)],[dm(10,58),dm(99,34.5)],[dm(9,33),dm(99,11)],[dm(8,52.3),dm(98,49.5)],[dm(8,33),dm(98,33.5)],[dm(8,36),dm(98,12)],[dm(9,29),dm(97,36)],[dm(9,29),dm(98,16)],[dm(9,50),dm(98,25)],[dm(9,55),dm(98,32)]]},
+{type:'D',shape:'polygon',id:'VTD59-A2',displayId:'VTD59',name:'SURAT THANI - AREA 2',color:'#ffcc00',limits:'ALT 12,000 FT / GND',activity:'MON-FRI 2300-1700 UTC',desc:'RTAF Flying Training. 30 NM PUT arc simplified.',geometryNote:'Arc simplified.',points:[[dm(9,29),dm(97,36)],[dm(8,36),dm(98,12)],[dm(8,20),dm(97,51.5)],[dm(8,20),dm(97,30)],[dm(9,29),dm(97,30)]]},
+{type:'D',shape:'polygon',id:'VTD60-A1',displayId:'VTD60',name:'SURAT THANI - AREA 1',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2300-1700 UTC',desc:'RTAF Flying Training.',points:[[dms(9,21,8.45),dms(99,31,49.01)],[dms(10,34,15.64),dms(99,54,39.12)],[dms(9,48,30.78),dms(100,17,54.79)],[dms(8,18,8.39),dms(100,15,50.28)],[dms(8,18,28.66),dms(99,43,52.24)],[dms(8,31,7.99),dms(99,36,38.33)],[dms(8,57,43.18),dms(99,36,40.94)]]},
+{type:'D',shape:'polygon',id:'VTD60-A2',displayId:'VTD60',name:'SURAT THANI - AREA 2',color:'#ffcc00',limits:'UNL / GND',activity:'Notified by NOTAM',desc:'RTAF Flying Training.',points:[[dms(9,28,47.28),dms(99,34,11.75)],[dms(10,0,5.16),dms(99,43,57.26)],[dms(10,0,0.95),dms(99,55,4.62)],[dms(9,30,17.70),dms(99,45,47.49)]]},
+{type:'D',shape:'polygon',id:'VTD61',name:'SURAT THANI',color:'#ffcc00',limits:'ALT 7,000 FT / GND',activity:'MON-FRI 2300-1700 UTC',desc:'RTAF Flying Training. 25 NM STN arc simplified.',geometryNote:'Arc simplified.',points:[[dm(8,45),dm(99,29)],[dm(8,27),dm(99,51)],[dm(8,16),dm(99,47)],[dm(8,28),dm(98,42)],[dm(8,45.7),dm(98,57.2)],[dm(8,44.5),dm(99,17.3)],[dm(8,40.4),dm(99,19.7)]]},
+{type:'D',shape:'polygon',id:'VTD63-A1',displayId:'VTD63',name:'UDON, LOEI - AREA 1',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training. Thai-Laotian border and 30 NM UDN arc simplified.',geometryNote:'Border/arc simplified.',points:[[dm(17,50.8),dm(102,35.5)],[dm(17,0),dm(102,28)],[dm(17,0),dm(101,30)],[dm(17,44),dm(101,30)]]},
+{type:'D',shape:'polygon',id:'VTD63-A2',displayId:'VTD63',name:'UDON, LOEI, KHON KAEN - AREA 2',color:'#ffcc00',limits:'ALT 10,000 FT / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training. UDN/KN arcs simplified.',geometryNote:'Arcs simplified.',points:[[dm(17,0),dm(102,28)],[dm(16,56),dm(102,39.5)],[dm(16,30),dm(102,17)],[dm(16,30),dm(101,30)],[dm(17,0),dm(101,30)]]},
+{type:'D',shape:'polygon',id:'VTD64-N',displayId:'VTD64',name:'UDON, NONG KHAI - NORTH AREA',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training. Thai-Laotian border and 30 NM UDN arc simplified.',geometryNote:'Border/arc simplified.',points:[[dm(17,55),dm(102,47)],[dm(17,53),dm(102,47.5)],[dm(17,25.53),dm(103,19.35)],[dm(17,31.94),dm(104,41.36)]]},
+{type:'D',shape:'polygon',id:'VTD64-S',displayId:'VTD64',name:'UDON, NONG KHAI - SOUTH AREA',color:'#ffcc00',limits:'UNL / GND',activity:'MON-FRI 2200-1700 UTC',desc:'RTAF Flying Training. Thai-Laotian border and 30 NM UDN arc simplified.',geometryNote:'Border/arc simplified.',points:[[dm(17,25.53),dm(103,19.35)],[dm(17,9),dm(103,15.8)],[dm(16,30),dm(104,9.2)],[dm(16,30),dm(104,40)],[dm(17,31.94),dm(104,41.36)]]},
+{type:'D',shape:'circle',id:'VTD65',name:'NORTHEASTERN AREA',color:'#ffcc00',limits:'FL150 / GND',activity:'MON-FRI 0000-1000 UTC',desc:'RTAF Flying Training / Bombing / Air Firing Area.',lat:dm(16,39),lng:dm(102,58),radiusNM:20},
+{type:'D',shape:'polygon',id:'VTD67',name:'KANCHANABURI',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'Notified by NOTAM',desc:'RTA Flying Training / Military operations.',points:[[dm(14,54),dm(98,30)],[dm(14,54),dm(99,57)],[dm(14,15),dm(99,23)],[dm(13,49),dm(99,23)],[dm(13,49),dm(99,14)],[dm(14,35),dm(98,30)]]},
+{type:'D',shape:'polygon',id:'VTD70',name:'CHANTHABURI',color:'#ffcc00',limits:'FL150 / GND',activity:'MON-FRI 0130-0930 UTC except public holidays',desc:'RTN Flight Training Area.',points:[[dm(12,53),dm(102,13)],[dm(12,53),dm(101,53)],[dm(13,13),dm(101,53)],[dm(13,13),dm(102,13)]]},
+{type:'D',shape:'polygon',id:'VTD71',name:'GULF OF THAILAND',color:'#ffcc00',limits:'FL300 / GND',activity:'Notified by NOTAM',desc:'RTN Flight Training Area.',points:[[dm(11,0),dm(101,35)],[dm(11,0),dm(101,5)],[dm(12,0),dm(100,45)],[dm(12,0),dm(101,35)]]},
+{type:'D',shape:'polygon',id:'VTD74-A1',displayId:'VTD74',name:'PHANGNGA - AREA 1',color:'#ffcc00',limits:'FL150 / GND',activity:'Notified by NOTAM',desc:'RTN Weapon Training Range.',points:[[dms(9,15,0),dms(97,15,0)],[dms(9,15,0),dms(97,40,0)],[dms(8,45,0),dms(97,40,0)],[dms(8,45,0),dms(97,15,0)]]},
+{type:'D',shape:'polygon',id:'VTD74-A2',displayId:'VTD74',name:'PHANGNGA - AREA 2',color:'#ffcc00',limits:'ALT 9,000 FT / GND',activity:'Notified by NOTAM',desc:'RTN Weapon Training Range.',points:[[dms(9,0,0),dms(97,50,0)],[dms(9,0,0),dms(98,5,0)],[dms(8,40,0),dms(98,5,0)],[dms(8,40,0),dms(97,50,0)]]},
+{type:'D',shape:'polygon',id:'VTD74-A3',displayId:'VTD74',name:'PHANGNGA - AREA 3',color:'#ffcc00',limits:'ALT 8,000 FT / GND',activity:'Notified by NOTAM',desc:'RTN Weapon Training Range.',points:[[dms(8,33,0),dms(97,50,0)],[dms(8,33,0),dms(98,14,0)],[dms(8,27,0),dms(98,14,0)],[dms(8,27,0),dms(97,50,0)]]},
+{type:'D',shape:'polygon',id:'VTD75',name:'KHON KAEN',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'SAT-SUN 2300-1400 UTC; otherwise NOTAM',desc:'Civil Flight Training Area.',points:[[dms(16,30,0),dms(102,37,0)],[dms(16,13,0),dms(102,22,0)],[dms(16,30,0),dms(102,17,0)]]},
+{type:'D',shape:'polygon',id:'VTD76',name:'KHON KAEN',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'SAT-SUN 2300-1400 UTC; otherwise NOTAM',desc:'Civil Flight Training Area.',points:[[dms(16,17,0),dms(102,50,0)],[dms(16,20,0),dms(103,15,0)],[dms(16,0,0),dms(103,15,0)],[dms(16,0,0),dms(102,50,0)]]},
+{type:'D',shape:'polygon',id:'VTD77',name:'KHON KAEN / ROI-ET',color:'#ffcc00',limits:'ALT 6,000 FT / GND',activity:'SAT-SUN 2300-1400 UTC; otherwise NOTAM',desc:'Civil Flight Training Area. 30/10 NM ROT arcs simplified.',geometryNote:'Arcs simplified.',points:[[dms(16,0,0),dms(103,39,15)],[dms(15,46,15),dms(103,24,30)],[dms(16,28,0),dms(103,24,30)],[dms(16,14,0),dms(103,39,15)]]},
+{type:'D',shape:'polygon',id:'VTD461',name:'PHITSANULOK',color:'#ffcc00',limits:'ALT 6,500 FT / GND',activity:'MON-FRI 0000-1000 UTC',desc:'AMC Manageable Area. Excludes Phitsanulok and Sukhothai TMA; exclusions not subtracted.',geometryNote:'TMA exclusions not subtracted.',points:[[dms(16,52,57),dms(99,22,21)],[dms(16,53,0),dms(99,55,2)],[dms(15,52,16),dms(100,15,22)],[dms(15,23,0),dms(100,15,11)],[dms(15,23,0),dms(100,5,0)],[dms(15,52,16),dms(99,42,51)]]}
+];
+
+function destinationPoint(lat,lng,bearingDeg,distanceNM){
+  var br=bearingDeg*rad,d=distanceNM/R_NM,p1=lat*rad,l1=lng*rad;
+  var p2=Math.asin(Math.sin(p1)*Math.cos(d)+Math.cos(p1)*Math.sin(d)*Math.cos(br));
+  var l2=l1+Math.atan2(Math.sin(br)*Math.sin(d)*Math.cos(p1),Math.cos(d)-Math.sin(p1)*Math.sin(p2));
+  return [p2*deg,l2*deg];
+}
+function sectorPoints(a){
+  var out=[[a.lat,a.lng]],start=a.startBearing,end=a.endBearing;
+  if(end<start)end+=360;
+  for(var b=start;b<=end;b+=2) out.push(destinationPoint(a.lat,a.lng,b%360,a.radiusNM));
+  out.push(destinationPoint(a.lat,a.lng,end%360,a.radiusNM));
+  out.push([a.lat,a.lng]);
+  return out;
+}
+AIRSPACES_DB.forEach(function(a){
+  var opts={color:a.color,weight:2,fillColor:a.color,fillOpacity:.18};
+  var layer=null;
+  if(a.shape==='circle') layer=L.circle([a.lat,a.lng],Object.assign({},opts,{radius:a.radiusNM*1852}));
+  else if(a.shape==='polygon') layer=L.polygon(a.points,opts);
+  else if(a.shape==='sector') layer=L.polygon(sectorPoints(a),opts);
+  if(!layer)return;
+
+  layer.bindPopup(
+    '<div class="airspace-popup">'+
+    '<h4 style="color:'+a.color+'"><b>'+esc(a.displayId||a.id)+'</b> '+esc(a.name)+'</h4>'+
+    '<div><b>Vertical:</b> '+esc(a.limits)+'<br><b>Activity:</b> '+esc(a.activity||'Refer AIP / NOTAM')+'</div>'+
+    '<pre>'+esc(a.desc||'')+(a.geometryNote?'\nGeometry note: '+esc(a.geometryNote):'')+'</pre></div>'
+  );
+  if(a.type==='P')layer.addTo(prohibLayer);
+  else if(a.type==='R')layer.addTo(restrictLayer);
+  else if(a.type==='D')layer.addTo(dangerLayer);
+});
+
+
+/* ============================================================
+   VTBD VFR REPORTING POINTS — AIP THAILAND AIRAC 01 OCT 2026
+   Source: VTBD AD 2.20 §8.5.2 (Light Aircraft)
+           VTBD AD 2.20 §8.5.3 (Helicopter)
+   ============================================================ */
+
+var VTBD_LIGHT_REPORTING_POINTS=[
+  ['AYUTTHAYA','Preedee-Thamrong Bridge Crossing Pasak River','R-359 / 27.5D',dms(14,21,8.00),dms(100,34,53.00)],
+  ['BANG BUA THONG','Bang Bua Thong Interchange','R-286 / 10.8D',dms(13,56,30.00),dms(100,25,7.00)],
+  ['BANG KHU WAT','Flora Ville Golf Course','R-313 / 7.3D',dms(13,58,37.00),dms(100,30,10.00)],
+  ['BANG LEN','Scan Inter Solar Power Plant, Bang Phasi, Bang Len','R-293 / 20.3D',dms(14,1,42.00),dms(100,16,24.00)],
+  ['BANG LUK SUA','Pradhana Vanalai Studio','R-070 / 28.3D',dms(14,3,26.00),dms(101,3,5.00)],
+  ['BANG NAM PRIAO','Bang Nam Priao Intersection','R-095 / 26.6D',dms(13,51,5.00),dms(101,2,58.00)],
+  ['BANG PAKONG','Devahastin Bridge, Bangna-Chonburi Expressway Crossing Bang Pakong River','R-136 / 33.9D',dms(13,29,13.20),dms(101,0,7.80)],
+  ['BUENG BA','Outdoor Stadium between Wat Bueng Ba Prapasawat and Nongsua Wittayakom School','R-042 / 19.3D',dms(14,7,51.00),dms(100,49,5.00)],
+  ['DON FAEK','Motorway Bang Yai-Kanchanaburi Bridge Crossing Tha Chin River 4','R-263 / 21.7D',dms(13,51,4.00),dms(100,13,28.00)],
+  ['EKACHAI','Ekachai Golf and Country Club','R-223 / 21.7D',dms(13,37,37.00),dms(100,20,38.00)],
+  ['HIN KONG','Hin Kong Interchange, Phahonyothin Rd.','R-030 / 35.2D',dms(14,24,30.00),dms(100,52,40.00)],
+  ['KOH KRET','Wat Poramai Yikawas, Koh Kret','R-280 / 6.5D',dms(13,54,41.00),dms(100,29,3.00)],
+  ['KOH LAN','Koh Lan','R-170 / 59.5D',dms(12,54,53.00),dms(100,46,49.00)],
+  ['KOH SICHANG','Koh Sichang','R-165 / 47.4D',dms(13,7,45.00),dms(100,48,40.00)],
+  ['LAM LUK KA','Bangkok Eastern Outer Ring Rd. Crossing Lamlukka Rd.','R-075 / 7.5D',dms(13,56,2.00),dms(100,42,31.00)],
+  ['LAT BUA LUANG','Singha Beverage Co., Ltd. Ladbualuang','R-312 / 24.5D',dms(14,10,8.00),dms(100,16,48.00)],
+  ['LAT LUM KAEO','Bangkok Western Outer Ring Rd. Crossing Pathumthani-Latlumkaeo Rd.','R-319 / 12.3D',dms(14,2,58.18),dms(100,27,35.85)],
+  ['MUEANG THONG','Impact Arena Building','R-290 / 3.0D',dms(13,54,35.00),dms(100,32,35.00)],
+  ['PATHUMTHANI','Pathumthani Bridge (Crossing Chaopraya River)','R-338 / 8.6D',dms(14,1,33.00),dms(100,32,25.00)],
+  ['PRATUNAM PHRA IN','Bang Pa-in Interchange, Bangkok Western Outer Ring Rd. Crossing Phaholyothin Rd.','R-005 / 16.8D',dms(14,12,5.00),dms(100,38,33.00)],
+  ['SANAP THUEP','PTT Innovation Institute Sanaptueb, Wang Noi','R-028 / 27.0D',dms(14,17,18.00),dms(100,48,35.00)],
+  ['SAMUT SAKHON','Thachalom Roundabout','R-222 / 28.4D',dms(13,32,17.00),dms(100,16,20.00)],
+  ['3 NM EAST','Sukhaphiban 5, Chalong Rat Expressway Toll Plaza','R-095 / 3.1D',dms(13,53,9.00),dms(100,38,58.00)],
+  ['3 NM WEST','Armed Forces Development Command (Dome shape), Si Kan','R-333 / 3.8D',dms(13,56,17.00),dms(100,34,13.00)],
+  ['5 NM WEST','Riverdale Golf Club, Bangkradee, Pathumthani','R-325 / 5.9D',dms(13,58,51.00),dms(100,32,24.00)],
+  ['10 NM WEST','Kanchanapisek Rd. Crossing Pra-u-dom canal','R-300 / 10.5D',dms(13,58,43.00),dms(100,26,18.00)]
+];
+
+var VTBD_HELI_REPORTING_POINTS=[
+  ['AYUTTHAYA','Preedee-Thamrong Bridge Crossing Pasak River','R-359 / 27.5D',dms(14,21,8.00),dms(100,34,53.00)],
+  ['BANG KHAE','Bang Khae Interchange','R-226 / 15.4D',dms(13,42,48.00),dms(100,24,27.00)],
+  ['BANG KHU WAT','Flora Ville Golf Course','R-313 / 7.3D',dms(13,58,37.00),dms(100,30,10.00)],
+  ['BANG LEN','Scan Inter Solar Power Plant, Bang Phasi, Bang Len','R-293 / 20.3D',dms(14,1,42.00),dms(100,16,24.00)],
+  ['BANG LUK SUA','Pradhana Vanalai Studio','R-070 / 28.3D',dms(14,3,26.00),dms(101,3,5.00)],
+  ['BANG NAM PRIAO','Bang Nam Priao Intersection','R-095 / 26.6D',dms(13,51,5.00),dms(101,2,58.00)],
+  ['BANGPU','Sukta Bridge','R-170 / 23.1D',dms(13,30,44.00),dms(100,39,44.00)],
+  ['BANG PAKONG','Devahastin Bridge, Bangna-Chonburi Expressway Crossing Bang Pakong River','R-136 / 33.9D',dms(13,29,13.20),dms(101,0,7.80)],
+  ['BANGYAI','Kanchanapisek Rd. Crossing Rattanathibet Rd.','R-249 / 11.6D',dms(13,49,25.46),dms(100,24,35.89)],
+  ['BHUMIBOL BRIDGE','Industrial Ring Rd. Interchange between Bhumibol 1-2 Bridge near Lat Pho Canal','R-194 / 14.0D',dms(13,40,3.00),dms(100,32,9.00)],
+  ['BUENG BA','Outdoor Stadium between Wat Bueng Ba Prapasawat and Nongsua Wittayakom School','R-042 / 19.3D',dms(14,7,51.00),dms(100,49,5.00)],
+  ['CAVPAD','2nd Cavalry Division Helipad (Sanam Pao)','R-186 / 7.8D',dms(13,46,20.00),dms(100,32,38.00)],
+  ['DON FAEK','Motorway Bang Yai-Kanchanaburi Bridge Crossing Tha Chin River 4','R-263 / 21.7D',dms(13,51,4.00),dms(100,13,28.00)],
+  ['EKACHAI','Ekachai Golf and Country Club','R-223 / 21.7D',dms(13,37,37.00),dms(100,20,38.00)],
+  ['HIN KONG','Hin Kong Interchange, Phahonyothin Rd.','R-030 / 35.2D',dms(14,24,30.00),dms(100,52,40.00)],
+  ['HUAI KHWANG','Train Repairing Center','R-173 / 8.5D',dms(13,45,55.00),dms(100,35,13.00)],
+  ['KHLONG CHAN','Rajamangala National Stadium','R-170 / 8.4D',dms(13,45,17.00),dms(100,37,14.00)],
+  ['KOH KRET','Wat Poramai Yikawas, Koh Kret','R-280 / 6.5D',dms(13,54,41.00),dms(100,29,3.00)],
+  ['KOH SICHANG','Koh Sichang','R-165 / 47.4D',dms(13,7,45.00),dms(100,48,40.00)],
+  ['LAM LUK KA','Bangkok Eastern Outer Ring Rd. Crossing Lamlukka Rd.','R-075 / 7.5D',dms(13,56,2.00),dms(100,42,31.00)],
+  ['LAT BUA LUANG','Singha Beverage Co., Ltd. Ladbualuang','R-312 / 24.5D',dms(14,10,8.00),dms(100,16,48.00)],
+  ['MINBURI','Bangkok Eastern Outer Ring Rd. Crossing Ram Inthra Rd.','R-133 / 6.4D',dms(13,49,11.00),dms(100,40,35.00)],
+  ['MUEANG THONG','Impact Arena Building','R-290 / 3.0D',dms(13,54,35.00),dms(100,32,35.00)],
+  ['PAKNAM','Samuthprakarn Learning Park and Tower','R-179 / 17.6D',dms(13,35,53.82),dms(100,35,56.21)],
+  ['PATHUMTHANI','Pathumthani Bridge (Crossing Chaopraya River)','R-338 / 8.6D',dms(14,1,33.00),dms(100,32,25.00)],
+  ['PRATUNAM PHRA IN','Bang Pa-in Interchange, Bangkok Western Outer Ring Rd. Crossing Phaholyothin Rd.','R-005 / 16.8D',dms(14,12,5.00),dms(100,38,33.00)],
+  ['RAMA V BRIDGE','Rama 5 Bridge (Crossing Chaopraya River)','R-237 / 6.6D',dms(13,49,58.00),dms(100,29,43.00)],
+  ['SANAP THUEP','PTT Innovation Institute Sanaptueb, Wang Noi','R-028 / 27.0D',dms(14,17,18.00),dms(100,48,35.00)],
+  ['SAMUT SAKHON','Thachalom Roundabout','R-222 / 28.4D',dms(13,32,17.00),dms(100,16,20.00)],
+  ['TPAD','Royal Thai Police Aviation Division, Tarang','R-131 / 3.1D',dms(13,51,35.00),dms(100,38,15.00)],
+  ['3 NM EAST','Sukhaphiban 5, Chalong Rat Expressway Toll Plaza','R-095 / 3.1D',dms(13,53,9.00),dms(100,38,58.00)],
+  ['3 NM WEST','Armed Forces Development Command (Dome shape), Si Kan','R-333 / 3.8D',dms(13,56,17.00),dms(100,34,13.00)],
+  ['5 NM WEST','Riverdale Golf Club, Bangkradee, Pathumthani','R-325 / 5.9D',dms(13,58,51.00),dms(100,32,24.00)],
+  ['10 NM WEST','Kanchanapisek Rd. Crossing Pra-u-dom canal','R-300 / 10.5D',dms(13,58,43.00),dms(100,26,18.00)],
+  ['11TH INFANTRY','2nd Infantry Battalion, 11th Infantry Regiment, Bangkhen','R-179 / 2.2D',dms(13,51,24.00),dms(100,35,50.00)]
+];
+
+function dmsText(lat,lng){
+  function one(v,isLat){
+    var av=Math.abs(v),d=Math.floor(av),mf=(av-d)*60,m=Math.floor(mf),s=(mf-m)*60;
+    var hem=isLat?(v>=0?'N':'S'):(v>=0?'E':'W');
+    return d+'° '+String(m).padStart(2,'0')+"' "+s.toFixed(2)+'" '+hem;
+  }
+  return one(lat,true)+' / '+one(lng,false);
+}
+
+function addReportingPointLayer(data,layer,kind){
+  var cssClass=kind==='light'?'rpt-light':'rpt-heli';
+  var title=kind==='light'?'LIGHT AIRCRAFT':'HELICOPTER';
+  var prefix=kind==='light'?'L':'H';
+
+  data.forEach(function(p){
+    var name=p[0],landmark=p[1],radial=p[2],lat=p[3],lng=p[4];
+
+    L.circleMarker([lat,lng],{
+      radius:5,
+      color:kind==='light'?'#72e4f5':'#ffd36a',
+      weight:2,
+      fillColor:kind==='light'?'#062b34':'#281c05',
+      fillOpacity:.95
+    }).bindPopup(
+      '<div class="rpt-popup">'+
+      '<h4>'+esc(name)+'</h4>'+
+      '<div><b>VTBD VFR '+title+'</b><br>'+
+      '<b>Landmark:</b> '+esc(landmark)+'<br>'+
+      '<b>BKK VOR:</b> '+esc(radial)+'<br>'+
+      '<b>Coordinates:</b> '+esc(dmsText(lat,lng))+'<br>'+
+      '<span style="color:#8fa8bd">AIP VTBD AD 2.20</span></div>'+
+      '<button type="button" class="rpt-add-btn">เพิ่มเป็นจุดบิน</button></div>'
+    ).addTo(layer)
+    .on('popupopen',function(e){
+      var btn=e.popup.getElement().querySelector('.rpt-add-btn');
+      if(btn){
+        btn.onclick=function(){
+          addPt(lat,lng,name);
+          map.closePopup();
+        };
+      }
+    });
+
+    L.marker([lat,lng],{
+      interactive:false,
+      icon:L.divIcon({
+        className:cssClass,
+        html:prefix+' '+esc(name),
+        iconSize:[0,0],
+        iconAnchor:[0,-8]
+      })
+    }).addTo(layer);
+  });
+}
+
+addReportingPointLayer(VTBD_LIGHT_REPORTING_POINTS,lightRptLayer,'light');
+addReportingPointLayer(VTBD_HELI_REPORTING_POINTS,heliRptLayer,'heli');
+
+
+var NOTAM_DB=[];
+function renderAllNotams(){
+  notamLayer.clearLayers();
+  NOTAM_DB.forEach(function(n){
+    var circle=L.circle([n.lat,n.lng],{
+      radius:Math.max(.2,n.radiusNM)*1852,
+      color:'#ff6b6b',weight:1.5,dashArray:'3 5',
+      fillColor:'#ff6b6b',fillOpacity:.15
+    }).addTo(notamLayer);
+    var p=L.marker([n.lat,n.lng],{
+      icon:L.divIcon({className:'notam-pin',html:'!',iconSize:[22,22],iconAnchor:[11,11]})
+    }).addTo(notamLayer);
+    var popup='<div class="airspace-popup"><h4 style="color:#ff4d4d">⚠ '+esc(n.id)+'</h4>'+
+      '<div><b>'+esc(n.title)+'</b><br>Radius '+n.radiusNM+' NM</div><pre>'+esc(n.text)+'</pre></div>';
+    circle.bindPopup(popup); p.bindPopup(popup);
+  });
+}
+
+document.getElementById('btnParseNotam').onclick=function(){
+  var raw=document.getElementById('rawNotam').value.trim();
+  if(!raw){alert('กรุณาวางข้อความ NOTAM');return;}
+
+  var idMatch=raw.match(/\b([A-Z]\d{4}\/\d{2})\b/);
+  var notamId=idMatch?idMatch[1]:'CUSTOM-NOTAM';
+
+  /*
+    Q-line coordinate/radius:
+    .../DDMM[N|S]DDDMM[E|W]RRR
+    Example .../1345N10030E005
+  */
+  var qMatch=raw.match(/Q\)[\s\S]*?\/(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])(\d{3})\b/i);
+  if(!qMatch){
+    alert('ไม่พบพิกัด/รัศมีจาก Q-line รูปแบบ DDMMNDDDMMERRR');
+    return;
+  }
+
+  var lat=Number(qMatch[1])+Number(qMatch[2])/60;
+  if(qMatch[3].toUpperCase()==='S')lat=-lat;
+  var lng=Number(qMatch[4])+Number(qMatch[5])/60;
+  if(qMatch[6].toUpperCase()==='W')lng=-lng;
+  var radius=Number(qMatch[7])||5;
+
+  NOTAM_DB.push({
+    id:notamId,title:'IMPORTED NOTAM',
+    lat:lat,lng:lng,radiusNM:radius,text:raw
+  });
+  renderAllNotams();
+  updateRouteNotams();
+  map.flyTo([lat,lng],Math.max(map.getZoom(),8));
+  document.getElementById('rawNotam').value='';
+};
+
+function dist(a,b){
   var p1=a.lat*rad,p2=b.lat*rad,dl=(b.lng-a.lng)*rad,dp=p2-p1;
-  var h=Math.sin(dp/2)*Math.sin(dp/2)+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2);
+  var h=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
   return 2*R_NM*Math.asin(Math.min(1,Math.sqrt(h)));
- }
- function course(a,b){
+}
+function course(a,b){
   var p1=a.lat*rad,p2=b.lat*rad,dl=(b.lng-a.lng)*rad;
-  var y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
+  var y=Math.sin(dl)*Math.cos(p2);
+  var x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
   return (Math.atan2(y,x)*deg+360)%360;
+}
+function pDistToSegment(p,a,b){
+  var dAB=dist(a,b);
+  if(dAB===0)return dist(p,a);
+  var dAP=dist(a,p),dBP=dist(b,p);
+  var crsAB=course(a,b)*rad,crsAP=course(a,p)*rad;
+  var dXt=Math.asin(
+    Math.max(-1,Math.min(1,Math.sin(dAP/R_NM)*Math.sin(crsAP-crsAB)))
+  )*R_NM;
+
+  var denom=Math.cos(dXt/R_NM);
+  if(Math.abs(denom)<1e-12)return Math.min(dAP,dBP);
+
+  var ratio=Math.cos(dAP/R_NM)/denom;
+  ratio=Math.max(-1,Math.min(1,ratio));
+  var dAt=Math.acos(ratio)*R_NM;
+
+  if(!isFinite(dAt)||dAt<0||dAt>dAB)return Math.min(dAP,dBP);
+  return Math.abs(dXt);
+}
+function updateRouteNotams(){
+  var box=document.getElementById('notamRouteList');
+  var countEl=document.getElementById('notamFoundCount');
+
+  if(pts.length<2){
+    box.innerHTML='<div style="color:var(--mute);font-size:12px">เลือกอย่างน้อย 2 จุด</div>';
+    countEl.textContent='0 รายการ';
+    return;
+  }
+
+  var matched=[],BUFFER_NM=30;
+  NOTAM_DB.forEach(function(n){
+    var minD=Infinity;
+    for(var i=1;i<pts.length;i++){
+      var d=pDistToSegment(n,pts[i-1],pts[i]);
+      if(d<minD)minD=d;
+    }
+    if(minD<=BUFFER_NM+n.radiusNM)matched.push({notam:n,distNM:minD});
+  });
+  matched.sort(function(a,b){return a.distNM-b.distNM;});
+  countEl.textContent=matched.length+' รายการ';
+
+  if(!matched.length){
+    box.innerHTML='<div style="color:var(--mute);font-size:12px">ไม่พบ NOTAM ที่นำเข้าใน corridor 30 NM จากขอบพื้นที่</div>';
+    return;
+  }
+  box.innerHTML=matched.map(function(item){
+    return '<div class="notam-card alert"><div class="notam-card-top">'+
+      '<span>⚠ '+esc(item.notam.id)+'</span><span style="color:var(--cyan)">'+item.distNM.toFixed(1)+' NM</span>'+
+      '</div><pre>'+esc(item.notam.text)+'</pre></div>';
+  }).join('');
+}
+
+var st=document.getElementById('status'),lastPlace='';
+map.on('mousemove',function(e){
+  var l=e.latlng.wrap();
+  st.textContent=formatDDM(l.lat,true)+' / '+formatDDM(l.lng,false)+(lastPlace?' | '+lastPlace:'');
+});
+map.on('zoomend',function(){
+  map.getContainer().classList.toggle('z7',map.getZoom()>=7);
+});
+
+function geocode(p){
+  fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&accept-language=th&lat='+p.lat+'&lon='+p.lng)
+  .then(function(r){return r.json();})
+  .then(function(j){
+    var a=j.address||{};
+    var d=a.county||a.city_district||a.district||a.town||a.city||'';
+    var pv=a.state||a.province||'';
+    p.place=[d,pv].filter(Boolean).join(' ');
+    lastPlace=p.place;
+    drawLines();
+  }).catch(function(){});
+}
+function addPt(lat,lng,name){
+  var p={lat:lat,lng:lng,name:name||'',place:''};
+
+  if(pendingInsertIndex!==null){
+    var idx=Math.max(0,Math.min(pendingInsertIndex,pts.length));
+    pts.splice(idx,0,p);
+    pendingInsertIndex=null;
+    updateInsertModeBanner();
+  }else{
+    pts.push(p);
+  }
+
+  elevCache={};
+  refresh();
+  geocode(p);
+}
+
+L.control.layers(
+ {'ภาพดาวเทียม':sat,'แผนที่ถนน':osm,'ภูมิประเทศ':topo},
+ {
+   'เส้นจังหวัด':provLayer,
+   'สนามบิน':aptLayer,
+   '<span style="color:#72e4f5;font-weight:600">VFR Light Aircraft</span>':lightRptLayer,
+   '<span style="color:#ffd36a;font-weight:600">VFR Helicopter</span>':heliRptLayer,
+   '<span style="color:#ff1a1a;font-weight:600">Prohibited (VTP)</span>':prohibLayer,
+   '<span style="color:#ff944d;font-weight:600">Restricted (VTR)</span>':restrictLayer,
+   '<span style="color:#ffcc00;font-weight:600">Danger (VTD)</span>':dangerLayer,
+   '<span style="color:#ff6b6b;font-weight:600">Imported NOTAM</span>':notamLayer
  }
- function arc(a,b,nOv){
-  var d=dist(a,b)/R_NM, out=[], n=nOv||Math.max(2,Math.ceil(d*deg/2));
-  var p1=a.lat*rad,l1=a.lng*rad,p2=b.lat*rad,l2=b.lng*rad;
-  var prev=a.lng;
+).addTo(map);
+L.control.scale({imperial:false,metric:true}).addTo(map);
+
+var elevCache={};
+function legKey(a,b){
+  return [a.lat,a.lng,b.lat,b.lng].map(function(x){return x.toFixed(4);}).join(',');
+}
+function evTxt(ev){
+  return ev&&ev.ft!==undefined?ev.ft.toLocaleString():(ev==='err'?'–':'…');
+}
+function arc(a,b,nOv){
+  var d=dist(a,b)/R_NM,out=[],n=nOv||Math.max(2,Math.ceil((d*deg)/2));
+  var p1=a.lat*rad,l1=a.lng*rad,p2=b.lat*rad,l2=b.lng*rad,prev=a.lng;
   for(var i=0;i<=n;i++){
-   var f=i/n, lat, lng;
-   if(d<1e-9){lat=a.lat;lng=a.lng}
-   else{
-    var A=Math.sin((1-f)*d)/Math.sin(d),B=Math.sin(f*d)/Math.sin(d);
-    var x=A*Math.cos(p1)*Math.cos(l1)+B*Math.cos(p2)*Math.cos(l2);
-    var y=A*Math.cos(p1)*Math.sin(l1)+B*Math.cos(p2)*Math.sin(l2);
-    var z=A*Math.sin(p1)+B*Math.sin(p2);
-    lat=Math.atan2(z,Math.sqrt(x*x+y*y))*deg; lng=Math.atan2(y,x)*deg;
-   }
-   while(lng-prev>180)lng-=360;
-   while(lng-prev<-180)lng+=360;
-   prev=lng; out.push([lat,lng]);
+    var f=i/n,lat,lng;
+    if(d<1e-9){lat=a.lat;lng=a.lng;}
+    else{
+      var A=Math.sin((1-f)*d)/Math.sin(d),B=Math.sin(f*d)/Math.sin(d);
+      var x=A*Math.cos(p1)*Math.cos(l1)+B*Math.cos(p2)*Math.cos(l2);
+      var y=A*Math.cos(p1)*Math.sin(l1)+B*Math.cos(p2)*Math.sin(l2);
+      var z=A*Math.sin(p1)+B*Math.sin(p2);
+      lat=Math.atan2(z,Math.sqrt(x*x+y*y))*deg;
+      lng=Math.atan2(y,x)*deg;
+    }
+    while(lng-prev>180)lng-=360;
+    while(lng-prev<-180)lng+=360;
+    prev=lng;
+    out.push([lat,lng]);
   }
   return out;
- }
- function fmtT(h){
-  if(!isFinite(h))return '–';
-  var m=Math.round(h*60),hh=Math.floor(m/60),mm=m%60;
-  return hh+' ชม. '+(mm<10?'0':'')+mm+' น.';
- }
- function fmtD(nm){var v=nm*UF[unit]; return v>=100?v.toFixed(0):v.toFixed(1);}
- function num(id){var v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0}
+}
+function loadElev(){
+  for(var i=1;i<pts.length;i++){
+    var a=pts[i-1],b=pts[i],k=legKey(a,b);
+    if(elevCache[k])continue;
+    elevCache[k]='pending';
 
- function drawLines(){
-  lineLayer.clearLayers();elevMark.clearLayers();
+    (function(k,a,b){
+      var n=Math.min(99,Math.max(2,Math.ceil(dist(a,b)/2)));
+      var path=arc(a,b,n);
+      var la=path.map(function(p){return p[0].toFixed(4);}).join(',');
+      var lo=path.map(function(p){return (((p[1]+540)%360)-180).toFixed(4);}).join(',');
+
+      fetch('https://api.open-meteo.com/v1/elevation?latitude='+la+'&longitude='+lo)
+      .then(function(r){
+        if(!r.ok)throw new Error(r.status);
+        return r.json();
+      })
+      .then(function(j){
+        var e=j.elevation;
+        if(!e||!e.length)throw new Error('no data');
+        var mi=0;
+        e.forEach(function(v,x){if(v>e[mi])mi=x;});
+        elevCache[k]={
+          ft:Math.max(0,Math.round(e[mi]*3.28084)),
+          pt:path[mi],
+          path:path,
+          elevationsFt:e.map(function(v){return Math.max(0,Math.round(v*3.28084));})
+        };
+        drawLines();
+      })
+      .catch(function(){elevCache[k]='err';drawLines();});
+    })(k,a,b);
+  }
+}
+function fmtT(h){
+  if(!isFinite(h))return '–';
+  var totalMins=Math.round(h*60);
+  var hh=Math.floor(totalMins/60);
+  var mm=totalMins%60;
+
+  if(hh>0 && mm>0)return hh+' Hr '+mm+' Mins';
+  if(hh>0)return hh+' Hr';
+  return mm+' Mins';
+}
+function fmtD(nm){
+  var v=nm*UF[unit];
+  return v>=100?v.toFixed(0):v.toFixed(1);
+}
+function num(id){
+  var v=parseFloat(document.getElementById(id).value);
+  return isFinite(v)?v:0;
+}
+
+
+function renderElevationProfile(){
+  elevHoverLayer.clearLayers();
+  var wrap=document.getElementById('elevChartWrap');
+  var status=document.getElementById('elevProfileStatus');
+  if(!wrap)return;
+
+  if(pts.length<2){
+    wrap.innerHTML='<div id="elevHoverInfo"></div><div class="elev-empty">Add at least two route points to display the elevation profile.</div>';
+    if(status)status.textContent='Route elevation';
+    return;
+  }
+
+  var samples=[];
+  var waypointDistances=[0];
+  var cumulative=0;
+  var pending=false;
+
+  for(var i=1;i<pts.length;i++){
+    var a=pts[i-1],b=pts[i];
+    var k=legKey(a,b);
+    var ev=elevCache[k];
+    var legD=dist(a,b);
+
+    if(!ev || ev==='pending'){
+      pending=true;
+      cumulative+=legD;
+      waypointDistances.push(cumulative);
+      continue;
+    }
+    if(ev==='err' || !ev.path || !ev.elevationsFt){
+      cumulative+=legD;
+      waypointDistances.push(cumulative);
+      continue;
+    }
+
+    for(var j=0;j<ev.path.length;j++){
+      if(i>1 && j===0)continue;
+      var frac=ev.path.length>1 ? j/(ev.path.length-1) : 0;
+      samples.push({
+        dNm:cumulative + legD*frac,
+        ft:ev.elevationsFt[j],
+        lat:ev.path[j][0],
+        lng:ev.path[j][1]
+      });
+    }
+    cumulative+=legD;
+    waypointDistances.push(cumulative);
+  }
+
+  if(!samples.length){
+    wrap.innerHTML='<div id="elevHoverInfo"></div><div class="elev-empty">'+(pending?'Loading elevation data…':'Elevation data unavailable for this route.')+'</div>';
+    if(status)status.textContent=pending?'Loading…':'No elevation data';
+    return;
+  }
+
+  var totalNm=waypointDistances[waypointDistances.length-1];
+  var totalDisplay=totalNm*UF[unit];
+  var maxFt=Math.max.apply(null,samples.map(function(s){return s.ft;}));
+  var yMax=Math.max(500,Math.ceil(maxFt/500)*500);
+  var yTicks=4;
+
+  var W=720,H=190;
+  var M={l:55,r:14,t:14,b:34};
+  var PW=W-M.l-M.r, PH=H-M.t-M.b;
+
+  function sx(dNm){
+    return M.l + (totalNm>0 ? (dNm/totalNm)*PW : 0);
+  }
+  function sy(ft){
+    return M.t + PH - (ft/yMax)*PH;
+  }
+  function fmtX(v){
+    if(totalDisplay>=100)return v.toFixed(0);
+    if(totalDisplay>=20)return v.toFixed(1);
+    return v.toFixed(2);
+  }
+
+  var linePath='';
+  samples.forEach(function(s,idx){
+    linePath+=(idx?' L':'M')+sx(s.dNm).toFixed(2)+' '+sy(s.ft).toFixed(2);
+  });
+  var fillPath=linePath+
+    ' L '+sx(samples[samples.length-1].dNm).toFixed(2)+' '+(M.t+PH)+
+    ' L '+sx(samples[0].dNm).toFixed(2)+' '+(M.t+PH)+' Z';
+
+  var svg=[];
+  svg.push('<svg id="elevChart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Elevation Profile">');
+
+  // Horizontal grid and Feet labels
+  for(var t=0;t<=yTicks;t++){
+    var ft=(yMax/yTicks)*t;
+    var y=sy(ft);
+    svg.push('<line class="elev-grid" x1="'+M.l+'" y1="'+y+'" x2="'+(W-M.r)+'" y2="'+y+'"/>');
+    svg.push('<text class="elev-label" x="'+(M.l-7)+'" y="'+(y+3)+'" text-anchor="end">'+Math.round(ft).toLocaleString()+'</text>');
+  }
+
+  // Vertical distance grid
+  var xTicks=5;
+  for(var x=0;x<=xTicks;x++){
+    var dNm=totalNm*(x/xTicks);
+    var xd=sx(dNm);
+    var dv=dNm*UF[unit];
+    svg.push('<line class="elev-grid" x1="'+xd+'" y1="'+M.t+'" x2="'+xd+'" y2="'+(M.t+PH)+'"/>');
+    svg.push('<text class="elev-label" x="'+xd+'" y="'+(H-18)+'" text-anchor="middle">'+fmtX(dv)+'</text>');
+  }
+
+  // Waypoint separators
+  waypointDistances.forEach(function(dNm,idx){
+    var x=sx(dNm);
+    svg.push('<line class="elev-waypoint" x1="'+x+'" y1="'+M.t+'" x2="'+x+'" y2="'+(M.t+PH)+'"/>');
+    svg.push('<text class="elev-waypoint-label" x="'+x+'" y="'+(M.t+9)+'" text-anchor="'+(idx===0?'start':(idx===waypointDistances.length-1?'end':'middle'))+'">'+(idx+1)+'</text>');
+  });
+
+  svg.push('<path class="elev-fill" d="'+fillPath+'"/>');
+  svg.push('<path class="elev-line" d="'+linePath+'"/>');
+  svg.push('<line class="elev-axis" x1="'+M.l+'" y1="'+(M.t+PH)+'" x2="'+(W-M.r)+'" y2="'+(M.t+PH)+'"/>');
+  svg.push('<line class="elev-axis" x1="'+M.l+'" y1="'+M.t+'" x2="'+M.l+'" y2="'+(M.t+PH)+'"/>');
+
+  svg.push('<text class="elev-axis-title" x="13" y="'+(M.t+PH/2)+'" text-anchor="middle" transform="rotate(-90 13 '+(M.t+PH/2)+')">Feet (Ft)</text>');
+  svg.push('<text class="elev-axis-title" x="'+(M.l+PW/2)+'" y="'+(H-4)+'" text-anchor="middle">Distance ('+UL[unit]+')</text>');
+  svg.push('<line id="elevHoverLine" class="elev-hover-line" x1="0" y1="'+M.t+'" x2="0" y2="'+(M.t+PH)+'" style="display:none"/>');
+  svg.push('<circle id="elevHoverDot" class="elev-hover-dot" cx="0" cy="0" r="4" style="display:none"/>');
+  svg.push('</svg>');
+
+  wrap.innerHTML='<div id="elevHoverInfo"></div>'+svg.join('');
+
+  var svgEl=document.getElementById('elevChart');
+  var hoverLine=document.getElementById('elevHoverLine');
+  var hoverDot=document.getElementById('elevHoverDot');
+  var hoverInfo=document.getElementById('elevHoverInfo');
+
+  function clearElevationHover(){
+    elevHoverLayer.clearLayers();
+    if(hoverLine)hoverLine.style.display='none';
+    if(hoverDot)hoverDot.style.display='none';
+    if(hoverInfo)hoverInfo.style.display='none';
+  }
+
+  if(svgEl){
+    svgEl.addEventListener('mousemove',function(evt){
+      var rect=svgEl.getBoundingClientRect();
+      if(!rect.width)return;
+
+      var xView=(evt.clientX-rect.left)/rect.width*W;
+      var clampedX=Math.max(M.l,Math.min(W-M.r,xView));
+      var dNm=((clampedX-M.l)/PW)*totalNm;
+
+      var nearest=samples[0];
+      var best=Math.abs(nearest.dNm-dNm);
+      for(var sidx=1;sidx<samples.length;sidx++){
+        var diff=Math.abs(samples[sidx].dNm-dNm);
+        if(diff<best){best=diff;nearest=samples[sidx];}
+      }
+
+      var hx=sx(nearest.dNm);
+      var hy=sy(nearest.ft);
+      hoverLine.setAttribute('x1',hx);
+      hoverLine.setAttribute('x2',hx);
+      hoverLine.style.display='';
+      hoverDot.setAttribute('cx',hx);
+      hoverDot.setAttribute('cy',hy);
+      hoverDot.style.display='';
+
+      var displayDistance=nearest.dNm*UF[unit];
+      hoverInfo.innerHTML='Distance '+(displayDistance>=100?displayDistance.toFixed(0):displayDistance.toFixed(1))+
+        ' '+UL[unit]+'<br>Elevation '+nearest.ft.toLocaleString()+' Ft';
+      hoverInfo.style.display='block';
+
+      elevHoverLayer.clearLayers();
+      var mm=L.circleMarker([nearest.lat,nearest.lng],{
+        radius:7,
+        color:'#ffffff',
+        weight:2,
+        fillColor:'#f5b335',
+        fillOpacity:.95
+      }).addTo(elevHoverLayer);
+
+      mm.bindTooltip(
+        'Distance '+(displayDistance>=100?displayDistance.toFixed(0):displayDistance.toFixed(1))+' '+UL[unit]+
+        '<br>Elevation '+nearest.ft.toLocaleString()+' Ft',
+        {permanent:false,direction:'top',offset:[0,-8]}
+      ).openTooltip();
+    });
+
+    svgEl.addEventListener('mouseleave',clearElevationHover);
+  }
+
+  if(status){
+    status.textContent='Max '+maxFt.toLocaleString()+' Ft • '+fmtD(totalNm)+' '+UL[unit]+(pending?' • loading…':'');
+  }
+}
+
+
+function updateInsertModeBanner(){
+  var banner=document.getElementById('insertModeBanner');
+  var textEl=document.getElementById('insertModeText');
+  if(!banner||!textEl)return;
+
+  if(pendingInsertIndex===null){
+    banner.classList.remove('on');
+    textEl.textContent='';
+    return;
+  }
+
+  textEl.textContent='Insert mode: new waypoint will be placed between WP '+pendingInsertIndex+' and WP '+(pendingInsertIndex+1);
+  banner.classList.add('on');
+}
+
+function startInsertWaypoint(index){
+  pendingInsertIndex=index;
+  updateInsertModeBanner();
+
+  var panel=document.querySelector('.waypoint-input-panel');
+  if(panel)panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function drawLines(){
+  lineLayer.clearLayers();
+  elevMark.clearLayers();
+
   var total=0,legs=[],top=null,pend=false;
   for(var i=1;i<pts.length;i++){
-   var a=pts[i-1],b=pts[i],d=dist(a,b),c=course(a,b);
-   var ev=elevCache[legKey(a,b)];
-   total+=d; legs.push({d:d,c:c,ev:ev});
-   if(ev&&ev.ft!==undefined){if(!top||ev.ft>top.ft)top=ev}else if(ev!=='err')pend=true;
-   var path=arc(a,b);
-   L.polyline(path,{color:'#f5b335',weight:3,opacity:.95,interactive:false}).addTo(lineLayer);
-   var mid=path[Math.floor(path.length/2)];
-   L.marker(mid,{interactive:false,icon:L.divIcon({className:'leglabel',html:fmtD(d)+' '+UL[unit]})}).addTo(lineLayer);
+    var a=pts[i-1],b=pts[i],d=dist(a,b),c=course(a,b),ev=elevCache[legKey(a,b)];
+    total+=d;
+    legs.push({d:d,c:c,ev:ev});
+    if(ev&&ev.ft!==undefined){
+      if(!top||ev.ft>top.ft)top=ev;
+    }else if(ev!=='err')pend=true;
+
+    var path=arc(a,b);
+    L.polyline(path,{color:'#f5b335',weight:3,opacity:.95,interactive:false}).addTo(lineLayer);
+    var mid=path[Math.floor(path.length/2)];
+    L.marker(mid,{
+      interactive:false,
+      icon:L.divIcon({className:'leglabel',html:fmtD(d)+' '+UL[unit]})
+    }).addTo(lineLayer);
   }
+
   var spd=num('speed'),burn=num('burn'),hrs=spd>0?total/spd:NaN;
   document.getElementById('tDist').textContent=fmtD(total);
   document.getElementById('tUnit').textContent=UL[unit];
   document.getElementById('tTime').textContent=pts.length>1?fmtT(hrs):'–';
   document.getElementById('tFuel').textContent=(pts.length>1&&isFinite(hrs))?(hrs*burn).toFixed(0):'–';
-  document.getElementById('tLegs').textContent=legs.length;
   document.getElementById('tElev').textContent=legs.length?(top?top.ft.toLocaleString()+' ft'+(pend?'+':''):(pend?'…':'–')):'–';
-  if(top)L.marker(top.pt,{interactive:false,icon:L.divIcon({className:'leglabel',html:'▲ '+top.ft.toLocaleString()+' ft'})}).addTo(elevMark);
+
+  if(top){
+    L.marker(top.pt,{
+      interactive:false,
+      icon:L.divIcon({className:'leglabel',html:'▲ '+top.ft.toLocaleString()+' ft'})
+    }).addTo(elevMark);
+  }
+
   var el=document.getElementById('legs');
-  if(!pts.length){el.innerHTML='<p class="empty">คลิกบนแผนที่เพื่อวางจุดแรก แล้วคลิกต่อไปเรื่อยๆ เพื่อสร้างเส้นทาง ลากหมุดเพื่อย้ายจุดได้</p>';return}
-  var h='<table><thead><tr><th>จุด</th><th>ระยะ</th><th>ทิศ</th><th>เวลา</th><th>สูงสุด ft</th><th></th></tr></thead><tbody>';
+  if(!pts.length){
+    el.innerHTML='<p class="empty">คลิกบนแผนที่หรือเลือกสนามบินเพื่อวาง waypoint</p>';
+    renderElevationProfile();
+    return;
+  }
+
+  var h='<table><thead><tr><th>จุด</th><th>ระยะ</th><th>ทิศ</th><th>เวลา</th><th>สูงสุด</th><th></th></tr></thead><tbody>';
   pts.forEach(function(p,i){
-   var lg=legs[i-1];
-   h+='<tr><td><span class="dot">'+(i+1)+'</span>'+(p.name?'<b>'+esc(p.name)+'</b>':(i===0?'ต้นทาง':''))+(p.place?'<div class="pl">'+esc(p.place)+'</div>':'')+'</td>'+
-    '<td>'+(lg?fmtD(lg.d):'')+'</td>'+
-    '<td>'+(lg?('000'+Math.round(lg.c)%360).slice(-3)+'°':'')+'</td>'+
-    '<td>'+(lg&&spd>0?fmtT(lg.d/spd).replace(' ชม. ',':').replace(' น.',''):'')+'</td>'+
-    '<td>'+(lg?evTxt(lg.ev):'')+'</td><td><button data-del="'+i+'" aria-label="ลบจุด '+(i+1)+'">✕</button></td></tr>';
+    var lg=legs[i-1];
+
+    if(i>0){
+      h+='<tr class="insert-row"><td colspan="6">'+
+        '<button type="button" class="insert-wp-btn" data-insert-wp="'+i+'">+ Insert Waypoint between WP '+i+' and WP '+(i+1)+'</button>'+
+        '</td></tr>';
+    }
+
+    h+='<tr><td data-edit-wp="'+i+'" style="cursor:pointer"><span class="dot">'+(i+1)+'</span>'+
+      (p.name?'<b>'+esc(p.name)+'</b>':(i===0?'ต้นทาง':''))+
+      (p.place?'<div class="pl">'+esc(p.place)+'</div>':'')+'</td>'+
+      '<td>'+(lg?fmtD(lg.d):'')+'</td>'+
+      '<td>'+(lg?String(Math.round(lg.c)%360).padStart(3,'0')+'°':'')+'</td>'+
+      '<td>'+(lg&&spd>0?fmtT(lg.d/spd):'')+'</td>'+
+      '<td>'+(lg?evTxt(lg.ev):'')+'</td>'+
+      '<td><button data-del="'+i+'" aria-label="Delete waypoint '+(i+1)+'">✕</button></td></tr>';
   });
   el.innerHTML=h+'</tbody></table>';
- }
- function drawMarkers(){
+  renderElevationProfile();
+}
+
+function openWaypointEditor(marker,p,index){
+  var popupHtml=
+    '<div class="wp-editor">'+
+      '<h4>Edit Waypoint '+(index+1)+'</h4>'+
+      '<label>Name<input id="editWpName" type="text" value="'+esc(p.name||'')+'"></label>'+
+      '<label>Latitude (DDM)<input id="editWpLat" type="text" value="'+esc(formatDDM(p.lat,true))+'"></label>'+
+      '<label>Longitude (DDM)<input id="editWpLng" type="text" value="'+esc(formatDDM(p.lng,false))+'"></label>'+
+      '<div class="wp-editor-actions">'+
+        '<button type="button" class="wp-editor-save" id="editWpSave">Save</button>'+
+        '<button type="button" class="wp-editor-delete" id="editWpDelete">Delete</button>'+
+      '</div>'+
+    '</div>';
+
+  marker.bindPopup(popupHtml,{closeButton:true}).openPopup();
+
+  marker.once('popupopen',function(e){
+    var root=e.popup.getElement();
+    if(!root)return;
+
+    var saveBtn=root.querySelector('#editWpSave');
+    var delBtn=root.querySelector('#editWpDelete');
+
+    if(saveBtn){
+      saveBtn.onclick=function(){
+        var name=root.querySelector('#editWpName').value.trim();
+        var lat=parseCoordInput(root.querySelector('#editWpLat').value,true);
+        var lng=parseCoordInput(root.querySelector('#editWpLng').value,false);
+
+        if(!isFinite(lat)||!isFinite(lng)){
+          alert("Invalid coordinates. Use DDM, e.g. 13°54.750'N / 100°36.400'E");
+          return;
+        }
+
+        p.name=name;
+        p.lat=lat;
+        p.lng=lng;
+        p.place='';
+
+        // Clear cached elevation so edited legs are recalculated.
+        elevCache={};
+
+        map.closePopup();
+        refresh();
+        geocode(p);
+      };
+    }
+
+    if(delBtn){
+      delBtn.onclick=function(){
+        pts.splice(index,1);
+        elevCache={};
+        pendingInsertIndex=null;
+        updateInsertModeBanner();
+        map.closePopup();
+        refresh();
+      };
+    }
+  });
+}
+
+function drawMarkers(){
   markerLayer.clearLayers();
   pts.forEach(function(p,i){
-   var m=L.marker([p.lat,p.lng],{draggable:true,icon:L.divIcon({className:'',html:'<div class="pin'+(i===0?' first':'')+'">'+(i+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13]})});
-   m.on('drag',function(e){var ll=e.target.getLatLng();p.lat=ll.lat;p.lng=ll.lng;drawLines()});
-   m.on('dragend',function(e){var ll=e.target.getLatLng().wrap();p.lat=ll.lat;p.lng=ll.lng;p.name='';p.place='';drawLines();loadElev();geocode(p)});
-   m.addTo(markerLayer);
-  });
- }
- function refresh(){drawMarkers();drawLines();loadElev()}
+    var m=L.marker([p.lat,p.lng],{
+      draggable:true,
+      icon:L.divIcon({
+        className:'',
+        html:'<div class="pin'+(i===0?' first':'')+'">'+(i+1)+'</div>',
+        iconSize:[26,26],iconAnchor:[13,13]
+      })
+    });
 
- map.on('click',function(e){var ll=e.latlng.wrap();addPt(ll.lat,ll.lng,'')});
- function openWindy(){
-  var p=pts.length?pts[pts.length-1]:null, c=p?{lat:p.lat,lng:p.lng}:map.getCenter().wrap(), z=Math.max(5,Math.min(map.getZoom(),9));
-  document.getElementById('wFrame').src='https://embed.windy.com/embed2.html?lat='+c.lat.toFixed(3)+'&lon='+c.lng.toFixed(3)+'&detailLat='+c.lat.toFixed(3)+'&detailLon='+c.lng.toFixed(3)+'&zoom='+z+'&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now&type=map&location=coordinates&metricWind=kt&metricTemp=%C2%B0C&radarRange=-1';
+    m.on('drag',function(e){
+      var ll=e.target.getLatLng();
+      p.lat=ll.lat;p.lng=ll.lng;
+      drawLines();
+      updateRouteNotams();
+    });
+
+    m.on('dragend',function(e){
+      var ll=e.target.getLatLng().wrap();
+      p.lat=ll.lat;p.lng=ll.lng;p.place='';
+      elevCache={};
+      drawLines();loadElev();geocode(p);updateRouteNotams();
+    });
+
+    m.on('click',function(){
+      openWaypointEditor(m,p,i);
+    });
+
+    m.addTo(markerLayer);
+  });
+}
+function refresh(){
+  drawMarkers();
+  drawLines();
+  loadElev();
+  updateRouteNotams();
+}
+
+map.on('click',function(e){
+  var ll=e.latlng.wrap();
+  addPt(ll.lat,ll.lng,'');
+});
+
+function openWindy(){
+  var p=pts.length?pts[pts.length-1]:null;
+  var c=p?{lat:p.lat,lng:p.lng}:map.getCenter().wrap();
+  var z=Math.max(5,Math.min(map.getZoom(),9));
+
+  document.getElementById('wFrame').src=
+    'https://embed.windy.com/embed2.html?lat='+c.lat.toFixed(4)+
+    '&lon='+c.lng.toFixed(4)+
+    '&detailLat='+c.lat.toFixed(4)+
+    '&detailLon='+c.lng.toFixed(4)+
+    '&width=650&height=450&zoom='+z+
+    '&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now';
+
   document.getElementById('windy').classList.add('on');
- }
- document.getElementById('wBtn').onclick=openWindy;
- document.getElementById('wSync').onclick=openWindy;
- document.getElementById('wClose').onclick=function(){document.getElementById('windy').classList.remove('on');document.getElementById('wFrame').removeAttribute('src')};
- document.getElementById('undo').onclick=function(){pts.pop();refresh()};
- document.getElementById('clear').onclick=function(){pts=[];refresh()};
- document.getElementById('legs').addEventListener('click',function(e){
-  var t=e.target.closest('[data-del]');if(!t)return;
-  pts.splice(parseInt(t.getAttribute('data-del'),10),1);refresh();
- });
- document.querySelectorAll('.units button').forEach(function(b){
+}
+document.getElementById('wBtn').onclick=openWindy;
+document.getElementById('wSync').onclick=openWindy;
+document.getElementById('wClose').onclick=function(){
+  document.getElementById('windy').classList.remove('on');
+  document.getElementById('wFrame').removeAttribute('src');
+};
+document.getElementById('undo').onclick=function(){
+  if(!pts.length)return;
+  pts.pop();refresh();
+};
+document.getElementById('clear').onclick=function(){
+  pts=[];elevCache={};pendingInsertIndex=null;updateInsertModeBanner();refresh();
+};
+
+document.getElementById('legs').addEventListener('click',function(e){
+  var insert=e.target.closest('[data-insert-wp]');
+  if(insert){
+    startInsertWaypoint(Number(insert.getAttribute('data-insert-wp')));
+    return;
+  }
+
+  var del=e.target.closest('[data-del]');
+  if(del){
+    pts.splice(Number(del.getAttribute('data-del')),1);
+    elevCache={};
+    pendingInsertIndex=null;
+    updateInsertModeBanner();
+    refresh();
+    return;
+  }
+
+  var edit=e.target.closest('[data-edit-wp]');
+  if(edit){
+    var idx=Number(edit.getAttribute('data-edit-wp'));
+    if(!pts[idx])return;
+
+    var layers=markerLayer.getLayers();
+    if(layers[idx]){
+      map.panTo([pts[idx].lat,pts[idx].lng]);
+      openWaypointEditor(layers[idx],pts[idx],idx);
+    }
+  }
+});
+
+document.querySelectorAll('.units button').forEach(function(b){
   b.onclick=function(){
-   unit=b.getAttribute('data-u');
-   document.querySelectorAll('.units button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
-   drawLines();
+    unit=b.getAttribute('data-u');
+    document.querySelectorAll('.units button').forEach(function(x){
+      x.setAttribute('aria-pressed',x===b?'true':'false');
+    });
+    drawLines();
   };
- });
- ['speed','burn'].forEach(function(id){document.getElementById(id).addEventListener('input',drawLines)});
- document.getElementById('searchForm').addEventListener('submit',function(e){
+});
+
+['speed','burn'].forEach(function(id){
+  document.getElementById(id).addEventListener('input',drawLines);
+});
+
+document.getElementById('searchForm').addEventListener('submit',function(e){
   e.preventDefault();
-  var q=document.getElementById('q').value.trim();if(!q)return;
+  var q=document.getElementById('q').value.trim();
+  if(!q)return;
+
   var ap=APX[q.toUpperCase()];
-  if(ap){map.flyTo([ap[4],ap[5]],11);setTimeout(function(){map.openPopup(L.popup().setLatLng([ap[4],ap[5]]).setContent('<b>'+ap[0]+'</b> '+esc(ap[2])))},1800);return}
-  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q))
-   .then(function(r){return r.json()})
-   .then(function(j){
-    if(!j.length){alert('ไม่พบสถานที่ "'+q+'" ลองใช้ชื่ออื่นหรือเพิ่มชื่อประเทศ');return}
-    map.flyTo([parseFloat(j[0].lat),parseFloat(j[0].lon)],11);
-   })
-   .catch(function(){alert('ค้นหาไม่สำเร็จ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต')});
- });
- refresh();
+  if(ap){
+    map.flyTo([ap[4],ap[5]],11);
+    L.popup().setLatLng([ap[4],ap[5]])
+      .setContent('<b>'+esc(ap[0])+'</b> '+esc(ap[2]))
+      .openOn(map);
+    return;
+  }
+
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=th&q='+encodeURIComponent(q))
+  .then(function(r){return r.json();})
+  .then(function(j){
+    if(!j.length){alert('ไม่พบสถานที่');return;}
+    map.flyTo([Number(j[0].lat),Number(j[0].lon)],11);
+  })
+  .catch(function(){alert('ค้นหาสถานที่ไม่สำเร็จ');});
+});
+
+
+function setWpMode(mode){
+  var airportMode=mode==='airport';
+  var latMode=mode==='latlon';
+  var radialMode=mode==='radial';
+
+  document.getElementById('wpModeAirport').classList.toggle('on',airportMode);
+  document.getElementById('wpModeLatLon').classList.toggle('on',latMode);
+  document.getElementById('wpModeRadial').classList.toggle('on',radialMode);
+
+  document.getElementById('wpTabAirport').setAttribute('aria-pressed',airportMode?'true':'false');
+  document.getElementById('wpTabLatLon').setAttribute('aria-pressed',latMode?'true':'false');
+  document.getElementById('wpTabRadial').setAttribute('aria-pressed',radialMode?'true':'false');
+}
+document.getElementById('wpTabAirport').onclick=function(){setWpMode('airport');};
+document.getElementById('wpTabLatLon').onclick=function(){setWpMode('latlon');};
+document.getElementById('wpTabRadial').onclick=function(){setWpMode('radial');};
+
+
+(function populateAirportList(){
+  var dl=document.getElementById('airportList');
+  if(!dl)return;
+  dl.innerHTML=AP.map(function(a){
+    var label=a[0]+' — '+a[2]+(a[3]?' ('+a[3]+')':'');
+    return '<option value="'+esc(label)+'"></option>';
+  }).join('');
+})();
+
+function findAirportByQuery(q){
+  var s=String(q||'').trim().toUpperCase();
+  if(!s)return null;
+
+  // Exact ICAO
+  if(APX[s])return APX[s];
+
+  // If selected from datalist: "VTBD — Don Mueang (...)"
+  var codeMatch=s.match(/^([A-Z]{4})\s+[—-]/);
+  if(codeMatch && APX[codeMatch[1]])return APX[codeMatch[1]];
+
+  // Exact/partial airport name or province
+  var hits=AP.filter(function(a){
+    var hay=(a[0]+' '+(a[1]||'')+' '+(a[2]||'')+' '+(a[3]||'')).toUpperCase();
+    return hay.indexOf(s)!==-1;
+  });
+
+  return hits.length?hits[0]:null;
+}
+
+document.getElementById('wpAddAirport').onclick=function(){
+  var q=document.getElementById('wpAirportQuery').value;
+  var ap=findAirportByQuery(q);
+
+  if(!ap){
+    alert('Airport not found in database');
+    return;
+  }
+
+  addPt(ap[4],ap[5],ap[0]);
+  map.flyTo([ap[4],ap[5]],Math.max(map.getZoom(),9));
+};
+
+document.getElementById('wpAddLatLon').onclick=function(){
+  var lat=parseCoordInput(document.getElementById('wpLat').value,true);
+  var lng=parseCoordInput(document.getElementById('wpLng').value,false);
+  var name=document.getElementById('wpName').value.trim();
+
+  if(!isFinite(lat) || !isFinite(lng)){
+    alert("Invalid LAT / LONG format. Use DDM, e.g. 13°54.750'N / 100°36.400'E");
+    return;
+  }
+
+  addPt(lat,lng,name);
+  map.flyTo([lat,lng],Math.max(map.getZoom(),9));
+};
+
+document.getElementById('wpAddRadial').onclick=function(){
+  var icao=document.getElementById('wpRefIcao').value.trim().toUpperCase();
+  var ap=APX[icao];
+  if(!ap){
+    alert('Reference airport ICAO not found in database');
+    return;
+  }
+
+  var radial=parseFloat(document.getElementById('wpRadial').value);
+  var dme=parseFloat(document.getElementById('wpDme').value);
+  if(!isFinite(radial) || radial<0 || radial>=360){
+    alert('Radial must be between 0 and 359.9 degrees');
+    return;
+  }
+  if(!isFinite(dme) || dme<0){
+    alert('DME must be 0 NM or greater');
+    return;
+  }
+
+  var p=waypointFromRadialDme(ap[4],ap[5],radial,dme);
+  var defaultName=icao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
+  var name=document.getElementById('wpRadialName').value.trim() || defaultName;
+
+  addPt(p[0],p[1],name);
+  map.flyTo(p,Math.max(map.getZoom(),9));
+};
+
+document.getElementById('cancelInsertMode').onclick=function(){
+  pendingInsertIndex=null;
+  updateInsertModeBanner();
+};
+
+refresh();
 })();
 </script>
 </body>
