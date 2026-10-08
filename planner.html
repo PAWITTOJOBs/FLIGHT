@@ -58,6 +58,7 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 .notam-input-panel{padding:12px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
 .notam-input-panel textarea{width:100%;height:82px;font-size:11px;font-family:var(--mono);resize:vertical}
 .notam-input-panel button{margin-top:6px;width:100%;font-size:12px;padding:6px;background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan);font-weight:600}
+.notam-imp{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:11px;font-family:var(--mono)}.notam-imp a{color:var(--amber);flex:1;text-decoration:none}.notam-imp span{color:var(--mute)}.notam-imp button{margin:0;width:auto;padding:1px 7px;background:transparent;border:1px solid var(--red);color:var(--red)}
 .notam-corridor{padding:14px 18px;background:var(--ink);border-bottom:1px solid var(--line)}
 .notam-corridor-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .notam-corridor-header b{color:var(--red);font-size:13px}
@@ -578,8 +579,10 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 
 <section class="notam-input-panel">
   <label style="font-size:12px;color:var(--cyan);font-weight:600;display:block;margin-bottom:4px">+ นำเข้า NOTAM (ICAO Q-line)</label>
-  <textarea id="rawNotam" placeholder="วาง NOTAM ที่มี Q) ... เช่น Q) VTBB/QWELW/IV/BO/W/000/100/1345N10030E005"></textarea>
+  <textarea id="rawNotam" placeholder="วาง NOTAM เต็มรูปแบบ (ต้องมี Q) และ/หรือพิกัดใน E) เช่น 144705N1033019E-… ) — กด 'ใส่ตัวอย่าง' เพื่อดูรูปแบบ"></textarea>
+  <button type="button" id="btnNotamExample" style="background:transparent;border-color:var(--line);color:var(--mute)">ใส่ตัวอย่าง NOTAM</button>
   <button type="button" id="btnParseNotam">พอร์ตลงแผนที่</button>
+  <div id="notamImportList"></div>
 </section>
 
 <section class="notam-corridor">
@@ -1171,56 +1174,165 @@ ENR_LBL.forEach(function(r){
   document.head.appendChild(st);
 })();
 
-var NOTAM_DB=[];
+var NOTAM_DB=[], notamUid=0;
+
+/* ---- NOTAM parsing ---- */
+var NOTAM_COORD_RX=/(\d{2})(\d{2})(\d{2}(?:\.\d+)?)?\s*([NS])\s*[,\/]?\s*(\d{3})(\d{2})(\d{2}(?:\.\d+)?)?\s*([EW])/gi;
+function notamCoordToLL(m){
+  var lat=Number(m[1])+Number(m[2])/60+(m[3]?Number(m[3])/3600:0);
+  var lng=Number(m[5])+Number(m[6])/60+(m[7]?Number(m[7])/3600:0);
+  if(m[4].toUpperCase()==='S')lat=-lat;
+  if(m[8].toUpperCase()==='W')lng=-lng;
+  return [lat,lng];
+}
+function notamField(raw,tag,nextTags){
+  var rx=new RegExp('(?:^|[\\s(])'+tag+'\\)\\s*([\\s\\S]*?)(?=(?:\\s|^)(?:'+nextTags+')\\)|\\)\\s*$|$)','i');
+  var m=raw.match(rx);return m?m[1].trim():'';
+}
+function parseOneNotam(raw){
+  raw=raw.replace(/\r/g,'').trim();
+  var idMatch=raw.match(/\b([A-Z]\d{4}\/\d{2})\b/);
+  var id=idMatch?idMatch[1]:'CUSTOM-NOTAM';
+  var q=raw.match(/Q\)\s*([^\n]*?)(?=\s+A\)|\n|$)/i);
+  var qline=q?q[1]:'';
+  var qf=qline.split('/').map(function(x){return x.trim();});
+  var centre=null,radius=null,limits='';
+  if(qf.length>=8){
+    var qm=qf[7].match(/^(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])(\d{3})?/i);
+    if(qm){
+      centre=notamCoordToLL([null,qm[1],qm[2],null,qm[3],qm[4],qm[5],null,qm[6]]);
+      radius=qm[7]?Number(qm[7]):null;
+    }
+    limits=(qf[5]||'')+'-'+(qf[6]||'');
+  }
+  var eTxt=notamField(raw,'E','F|G|Q|A|B|C|D');
+  var fTxt=notamField(raw,'F','G|E|Q|A|B|C|D'), gTxt=notamField(raw,'G','F|E|Q|A|B|C|D');
+  var bTxt=notamField(raw,'B','C|D|E|F|G|Q|A'), cTxt=notamField(raw,'C','D|E|F|G|Q|A|B'), dTxt=notamField(raw,'D','E|F|G|Q|A|B|C');
+  /* coordinates in E) body */
+  var body=eTxt||raw.replace(/Q\)[^\n]*/i,'');
+  var coords=[],m;
+  NOTAM_COORD_RX.lastIndex=0;
+  while((m=NOTAM_COORD_RX.exec(body))){coords.push(notamCoordToLL(m));}
+  var poly=null;
+  if(coords.length>=3){
+    poly=coords.slice();
+    var a=poly[0],b=poly[poly.length-1];
+    if(Math.abs(a[0]-b[0])<1e-6&&Math.abs(a[1]-b[1])<1e-6)poly.pop();
+    if(poly.length<3)poly=null;
+  }
+  var circ=null; /* RADIUS n NM/KM around a coordinate in E) */
+  if(!poly&&coords.length>=1){
+    var rm=body.match(/(?:RADIUS|RAD)\s*(?:OF\s*)?(\d+(?:\.\d+)?)\s*(NM|KM|M)\b|(\d+(?:\.\d+)?)\s*(NM|KM)\s*RADIUS/i);
+    if(rm){
+      var val=Number(rm[1]||rm[3]),u=(rm[2]||rm[4]).toUpperCase();
+      circ={ll:coords[0],nm:u==='KM'?val/1.852:(u==='M'?val/1852:val)};
+    }
+  }
+  var lat,lng,rNM,approx=false;
+  if(poly){
+    lat=poly.reduce(function(t,p){return t+p[0]},0)/poly.length;
+    lng=poly.reduce(function(t,p){return t+p[1]},0)/poly.length;
+    rNM=0;
+    poly.forEach(function(p){
+      var d=2*R_NM*Math.asin(Math.min(1,Math.sqrt(Math.sin((p[0]-lat)*rad/2)**2+Math.cos(lat*rad)*Math.cos(p[0]*rad)*Math.sin((p[1]-lng)*rad/2)**2)));
+      if(d>rNM)rNM=d;
+    });
+    rNM=Math.round(rNM*10)/10;
+  }else if(circ){lat=circ.ll[0];lng=circ.ll[1];rNM=Math.round(circ.nm*10)/10;}
+  else if(centre){lat=centre[0];lng=centre[1];rNM=radius||5;approx=true;}
+  else return null;
+  var vert=[];
+  if(fTxt||gTxt)vert.push('F) '+fTxt+'  G) '+gTxt);
+  else if(limits&&limits!=='-')vert.push('Q-line: '+limits+' (FL)');
+  return {id:id,title:(poly?'POLYGON ('+poly.length+' pts)':(circ?'CIRCLE':'Q-LINE CIRCLE'))+(approx?' (approx. from Q-line)':''),
+          lat:lat,lng:lng,radiusNM:rNM,poly:poly,text:raw,
+          vertical:vert.join(''),period:(bTxt||cTxt)?('B) '+bTxt+'  C) '+cTxt+(dTxt?'  D) '+dTxt:'')):''};
+}
+function splitNotams(raw){
+  var parts=raw.split(/\n(?=\s*\(?[A-Z]\d{4}\/\d{2}\s+NOTAM[NRC])/);
+  return parts.map(function(p){return p.trim();}).filter(Boolean);
+}
+
 function renderAllNotams(){
   notamLayer.clearLayers();
   NOTAM_DB.forEach(function(n){
-    var circle=L.circle([n.lat,n.lng],{
-      radius:Math.max(.2,n.radiusNM)*1852,
-      color:'#ff6b6b',weight:1.5,dashArray:'3 5',
-      fillColor:'#ff6b6b',fillOpacity:.15
-    }).addTo(notamLayer);
+    var shape=n.poly
+      ? L.polygon(n.poly,{color:'#ff6b6b',weight:2,dashArray:'6 4',fillColor:'#ff6b6b',fillOpacity:.15})
+      : L.circle([n.lat,n.lng],{radius:Math.max(.2,n.radiusNM)*1852,color:'#ff6b6b',weight:1.5,dashArray:'3 5',fillColor:'#ff6b6b',fillOpacity:.15});
+    shape.addTo(notamLayer);
     var p=L.marker([n.lat,n.lng],{
       icon:L.divIcon({className:'notam-pin',html:'!',iconSize:[22,22],iconAnchor:[11,11]})
     }).addTo(notamLayer);
-    var popup='<div class="airspace-popup"><h4 style="color:#ff4d4d">⚠ '+esc(n.id)+'</h4>'+
-      '<div><b>'+esc(n.title)+'</b><br>Radius '+n.radiusNM+' NM</div><pre>'+esc(n.text)+'</pre></div>';
-    circle.bindPopup(popup); p.bindPopup(popup);
+    var popup=function(){
+      return '<div class="airspace-popup" style="max-width:340px"><h4 style="color:#ff4d4d">⚠ '+esc(n.id)+'</h4>'+
+        '<div><b>'+esc(n.title)+'</b>'+(n.poly?'':'<br>Radius '+n.radiusNM+' NM')+
+        '<br>'+formatDDM(n.lat,true)+' '+formatDDM(n.lng,false)+
+        (n.vertical?'<br>'+esc(n.vertical):'')+(n.period?'<br>'+esc(n.period):'')+'</div>'+
+        '<pre style="max-height:200px;overflow:auto">'+esc(n.text)+'</pre>'+
+        '<button type="button" class="notam-del" data-uid="'+n.uid+'" style="margin-top:6px;width:100%;background:#ff4d4d;color:#fff;border:0;border-radius:4px;padding:6px;font-weight:600;cursor:pointer">🗑 ลบ NOTAM นี้</button></div>';
+    };
+    shape.bindPopup(popup); p.bindPopup(popup);
   });
+  renderNotamImportList();
 }
+function removeNotam(uid){
+  NOTAM_DB=NOTAM_DB.filter(function(n){return n.uid!==uid;});
+  map.closePopup();
+  renderAllNotams();
+  updateRouteNotams();
+}
+function renderNotamImportList(){
+  var el=document.getElementById('notamImportList');if(!el)return;
+  if(!NOTAM_DB.length){el.innerHTML='';return;}
+  el.innerHTML=NOTAM_DB.map(function(n){
+    return '<div class="notam-imp"><a href="#" data-fly="'+n.uid+'">⚠ '+esc(n.id)+'</a><span>'+esc(n.poly?n.poly.length+' pts':n.radiusNM+' NM')+'</span><button type="button" data-rm="'+n.uid+'" title="ลบ">✕</button></div>';
+  }).join('');
+}
+document.addEventListener('click',function(e){
+  var d=e.target.closest&&e.target.closest('.notam-del');
+  if(d){removeNotam(Number(d.getAttribute('data-uid')));return;}
+  var rm=e.target.closest&&e.target.closest('[data-rm]');
+  if(rm){removeNotam(Number(rm.getAttribute('data-rm')));return;}
+  var fl=e.target.closest&&e.target.closest('[data-fly]');
+  if(fl){
+    e.preventDefault();
+    var n=NOTAM_DB.filter(function(x){return x.uid===Number(fl.getAttribute('data-fly'));})[0];
+    if(n){ if(n.poly)map.fitBounds(L.latLngBounds(n.poly).pad(.2)); else map.flyTo([n.lat,n.lng],Math.max(map.getZoom(),8)); }
+  }
+});
 
+var NOTAM_EXAMPLE=`(J6997/26 NOTAMN
+Q) VTBB/QWULW/IV/BO/W/080/170/1428N10409E062
+A) VTBB B) 2610012200 C) 2612311659
+E) UNMANNED AIRCRAFT WILL TAKE PLACE WI AREA
+144705.00N1033019.00E-143541.00N1051246.00E-142141.00N1051246.00E-
+142153.00N1050903.00E-141439.00N1050717.00E-141441.00N1050246.00E-
+142457.00N1050016.00E-142722.00N1044434.00E-142253.00N1042843.00E-
+142504.00N1041624.00E-142144.00N1035707.00E-142742.00N1034146.00E-
+141921.00N1030558.00E-142521.00N1030558.00E-144705.00N1033019.00E
+(SI SAKET, UBON RATCHATHANI, BURIRAM AND SURIN PROVINCE)
+RMK: ACFT MAY FILE FPL ON AFFECTED RTE BUT EXP RADAR VECTORED BY
+ATC SUBJECTED TO COORDINATION BTN CIV/MIL ATC
+F) 8000FT AMSL G) FL170)`;
+document.getElementById('btnNotamExample').onclick=function(){document.getElementById('rawNotam').value=NOTAM_EXAMPLE;};
 document.getElementById('btnParseNotam').onclick=function(){
   var raw=document.getElementById('rawNotam').value.trim();
   if(!raw){alert('กรุณาวางข้อความ NOTAM');return;}
-
-  var idMatch=raw.match(/\b([A-Z]\d{4}\/\d{2})\b/);
-  var notamId=idMatch?idMatch[1]:'CUSTOM-NOTAM';
-
-  /*
-    Q-line coordinate/radius:
-    .../DDMM[N|S]DDDMM[E|W]RRR
-    Example .../1345N10030E005
-  */
-  var qMatch=raw.match(/Q\)[\s\S]*?\/(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])(\d{3})\b/i);
-  if(!qMatch){
-    alert('ไม่พบพิกัด/รัศมีจาก Q-line รูปแบบ DDMMNDDDMMERRR');
+  var added=[],failed=0;
+  splitNotams(raw).forEach(function(chunk){
+    var n=parseOneNotam(chunk);
+    if(n){n.uid=++notamUid;NOTAM_DB.push(n);added.push(n);}else failed++;
+  });
+  if(!added.length){
+    alert('อ่านพิกัดไม่ได้ — ต้องมี Q-line (…/DDMM[N|S]DDDMM[E|W]RRR) หรือพิกัดใน E) เช่น 144705N1033019E');
     return;
   }
-
-  var lat=Number(qMatch[1])+Number(qMatch[2])/60;
-  if(qMatch[3].toUpperCase()==='S')lat=-lat;
-  var lng=Number(qMatch[4])+Number(qMatch[5])/60;
-  if(qMatch[6].toUpperCase()==='W')lng=-lng;
-  var radius=Number(qMatch[7])||5;
-
-  NOTAM_DB.push({
-    id:notamId,title:'IMPORTED NOTAM',
-    lat:lat,lng:lng,radiusNM:radius,text:raw
-  });
   renderAllNotams();
   notamLayer.addTo(map);
   updateRouteNotams();
-  map.flyTo([lat,lng],Math.max(map.getZoom(),8));
+  var b=L.latLngBounds(added.map(function(n){return n.poly?L.latLngBounds(n.poly):L.latLng(n.lat,n.lng).toBounds(Math.max(.2,n.radiusNM)*3704);}).reduce(function(a,c){return a.extend(c);}));
+  map.fitBounds(b.pad(.15),{maxZoom:11});
+  if(failed)alert('นำเข้า '+added.length+' รายการ, อ่านไม่ได้ '+failed+' รายการ');
   document.getElementById('rawNotam').value='';
 };
 
