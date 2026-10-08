@@ -466,12 +466,19 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   font-weight:600;
 }
 
+
+.measure-pin{
+  will-change:transform;
+  transform:translateZ(0);
+  touch-action:none;
+}
+
 </style>
 </head>
 <body>
 <aside id="panel">
 <header>
-  <h1>FLIGHT PLANNER</h1>
+  <h1>FLIGHT-PLANNER</h1>
   <div class="version">AIP THAILAND • AIRAC EFFECTIVE 01 OCT 2026</div>
   <form class="search" id="searchForm">
     <input id="q" type="search" placeholder="ICAO เช่น VTBL, VTBS หรือชื่อสถานที่" aria-label="ค้นหาสถานที่">
@@ -495,7 +502,7 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 
 <section class="params">
   <label>Airspeed (kt)<input id="speed" type="number" min="1" value="120"></label>
-  <label>Fuel Consumption<input id="burn" type="number" min="0" value="40"></label>
+  <label>Fuel Consumption<input id="burn" type="number" min="0" value="900"></label>
 </section>
 <div id="insertModeBanner">
   <span id="insertModeText"></span>
@@ -721,7 +728,7 @@ var markerLayer=L.layerGroup().addTo(map);
 var elevHoverLayer=L.layerGroup().addTo(map);
 var gpsLayer=L.layerGroup().addTo(map);
 var measureLayer=L.layerGroup().addTo(map);
-var measureActive=false, measurePts=[];
+var measureActive=false, measurePts=[], measureMarkers=[null,null], measureLine=null, measureLabel=null, measureRAF=0;
 
 var provPane=map.createPane('prov');
 provPane.style.zIndex=350;
@@ -1842,33 +1849,152 @@ function locateCurrentPosition(centerMap){
 }
 
 function clearMeasurement(){
+  if(measureRAF){
+    cancelAnimationFrame(measureRAF);
+    measureRAF=0;
+  }
   measureLayer.clearLayers();
   measurePts=[];
+  measureMarkers=[null,null];
+  measureLine=null;
+  measureLabel=null;
 }
 
-function drawMeasurement(){
-  measureLayer.clearLayers();
-  if(!measurePts.length)return;
+function measureText(a,b){
+  var d=dist(a,b);
+  var hdg=course(a,b);
+  return {
+    d:d,
+    hdg:hdg,
+    text:fmtD(d)+' '+UL[unit]+' • '+String(Math.round(hdg)%360).padStart(3,'0')+'°'
+  };
+}
 
-  measurePts.forEach(function(p,i){
-    L.marker([p.lat,p.lng],{
-      icon:L.divIcon({
-        className:'',
-        html:'<div class="measure-pin">'+(i===0?'A':'B')+'</div>',
-        iconSize:[22,22],iconAnchor:[11,11]
-      })
-    }).addTo(measureLayer);
+function makeMeasureMarker(index,label){
+  if(!measurePts[index])return null;
+  if(measureMarkers[index])return measureMarkers[index];
+
+  var mk=L.marker([measurePts[index].lat,measurePts[index].lng],{
+    draggable:measureActive,
+    autoPan:true,
+    autoPanPadding:[40,40],
+    autoPanSpeed:12,
+    riseOnHover:true,
+    icon:L.divIcon({
+      className:'',
+      html:'<div class="measure-pin">'+label+'</div>',
+      iconSize:[22,22],
+      iconAnchor:[11,11]
+    })
+  }).addTo(measureLayer);
+
+  mk.on('dragstart',function(){
+    map.dragging.disable();
   });
 
-  if(measurePts.length<2)return;
+  mk.on('drag',function(e){
+    var ll=e.target.getLatLng();
+    measurePts[index].lat=ll.lat;
+    measurePts[index].lng=ll.lng;
+    scheduleMeasurementUpdate();
+  });
+
+  mk.on('dragend',function(e){
+    var ll=e.target.getLatLng().wrap();
+    measurePts[index].lat=ll.lat;
+    measurePts[index].lng=ll.lng;
+    if(measureActive)map.dragging.enable();
+    updateMeasurementGraphics();
+  });
+
+  measureMarkers[index]=mk;
+  return mk;
+}
+
+function setMeasureDragging(enabled){
+  measureMarkers.forEach(function(mk){
+    if(!mk || !mk.dragging)return;
+    if(enabled)mk.dragging.enable();
+    else mk.dragging.disable();
+  });
+}
+
+function scheduleMeasurementUpdate(){
+  if(measureRAF)return;
+  measureRAF=requestAnimationFrame(function(){
+    measureRAF=0;
+    updateMeasurementGraphics();
+  });
+}
+
+function updateMeasurementGraphics(){
+  if(!measurePts.length)return;
+
+  var aMarker=makeMeasureMarker(0,'A');
+  if(aMarker && !aMarker.dragging._draggable._moving){
+    aMarker.setLatLng([measurePts[0].lat,measurePts[0].lng]);
+  }
+
+  if(measurePts.length<2){
+    if(measureMarkers[1]){
+      measureLayer.removeLayer(measureMarkers[1]);
+      measureMarkers[1]=null;
+    }
+    if(measureLine){
+      measureLayer.removeLayer(measureLine);
+      measureLine=null;
+    }
+    if(measureLabel){
+      measureLayer.removeLayer(measureLabel);
+      measureLabel=null;
+    }
+    st.textContent='RULER MODE: drag A or click map to set B';
+    return;
+  }
+
+  var bMarker=makeMeasureMarker(1,'B');
+  if(bMarker && !bMarker.dragging._draggable._moving){
+    bMarker.setLatLng([measurePts[1].lat,measurePts[1].lng]);
+  }
 
   var a=measurePts[0],b=measurePts[1];
-  var d=dist(a,b),hdg=course(a,b),path=arc(a,b),mid=path[Math.floor(path.length/2)];
-  L.polyline(path,{color:'#ffffff',weight:2,dashArray:'6 5',opacity:.95,interactive:false}).addTo(measureLayer);
-  L.marker(mid,{interactive:false,icon:L.divIcon({
-    className:'measure-label',
-    html:fmtD(d)+' '+UL[unit]+' • '+String(Math.round(hdg)%360).padStart(3,'0')+'°'
-  })}).addTo(measureLayer);
+  var path=arc(a,b);
+  var mid=path[Math.floor(path.length/2)];
+  var info=measureText(a,b);
+
+  if(!measureLine){
+    measureLine=L.polyline(path,{
+      color:'#ffffff',
+      weight:2,
+      dashArray:'6 5',
+      opacity:.95,
+      interactive:false,
+      smoothFactor:1
+    }).addTo(measureLayer);
+  }else{
+    measureLine.setLatLngs(path);
+  }
+
+  if(!measureLabel){
+    measureLabel=L.marker(mid,{
+      interactive:false,
+      icon:L.divIcon({
+        className:'measure-label',
+        html:info.text
+      })
+    }).addTo(measureLayer);
+  }else{
+    measureLabel.setLatLng(mid);
+    var el=measureLabel.getElement();
+    if(el)el.innerHTML=info.text;
+  }
+
+  st.textContent='RULER MODE: '+info.text+' • drag A/B to adjust';
+}
+
+function redrawMeasurement(){
+  updateMeasurementGraphics();
+  setMeasureDragging(measureActive);
 }
 
 function setMeasureMode(on){
@@ -1876,29 +2002,28 @@ function setMeasureMode(on){
   var btn=document.getElementById('measureBtn');
   if(btn)btn.classList.toggle('active',measureActive);
 
+  setMeasureDragging(measureActive);
+
   if(measureActive){
+    if(!measurePts.length){
+      st.textContent='RULER MODE: click map to set point A';
+    }else{
+      updateMeasurementGraphics();
+    }
+  }else{
     clearMeasurement();
-    st.textContent='RULER: click first point';
-  }else if(!measurePts.length){
     st.textContent='Click on map to add waypoint';
   }
 }
 
 function handleMeasureClick(ll){
-  measurePts.push({lat:ll.lat,lng:ll.lng});
-  drawMeasurement();
-
-  if(measurePts.length===1){
-    st.textContent='RULER: click second point';
-    return;
+  if(measurePts.length>=2){
+    clearMeasurement();
   }
 
-  var a=measurePts[0],b=measurePts[1];
-  var d=dist(a,b),hdg=course(a,b);
-  st.textContent='RULER: '+fmtD(d)+' '+UL[unit]+' • HDG '+String(Math.round(hdg)%360).padStart(3,'0')+'°';
-  measureActive=false;
-  var btn=document.getElementById('measureBtn');
-  if(btn)btn.classList.remove('active');
+  measurePts.push({lat:ll.lat,lng:ll.lng});
+  updateMeasurementGraphics();
+  setMeasureDragging(true);
 }
 
 function xmlEsc(s){
@@ -2058,7 +2183,7 @@ document.querySelectorAll('.units button').forEach(function(b){
       x.setAttribute('aria-pressed',x===b?'true':'false');
     });
     drawLines();
-    if(measurePts.length)drawMeasurement();
+    if(measurePts.length)updateMeasurementGraphics();
   };
 });
 
