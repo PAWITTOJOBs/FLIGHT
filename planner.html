@@ -657,6 +657,7 @@ function parseCoordInput(value,isLat){
     if(!isLat && d>180)return NaN;
 
     var out=d+(min/60);
+    if(out>(isLat?90:180))return NaN;
     if(hem==='S'||hem==='W')out=-out;
 
     if(isLat && !/[NS]/.test(hem))return NaN;
@@ -677,6 +678,7 @@ function parseCoordInput(value,isLat){
 
     if(min2>=60)return NaN;
     var out2=d2+(min2/60);
+    if(out2>(isLat?90:180))return NaN;
     if(hem2==='S'||hem2==='W')out2=-out2;
     return out2;
   }
