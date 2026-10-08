@@ -1,0 +1,86 @@
+# Builds the offline Thailand map (OpenStreetMap data via Protomaps daily build)
+# and publishes the app to GitHub Pages.
+# One-time setup: repo Settings > Pages > Source = "GitHub Actions".
+name: Build offline map and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  # Thailand + border areas: min_lon,min_lat,max_lon,max_lat
+  MAP_BBOX: "97.0,5.4,106.0,20.7"
+  # Highest zoom stored in the map file (higher = more detail, bigger file)
+  MAP_MAXZOOM: "12"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Month stamp (map is refreshed monthly)
+        id: stamp
+        run: echo "month=$(date -u +%Y-%m)" >> "$GITHUB_OUTPUT"
+
+      - name: Reuse map built earlier this month
+        id: mapcache
+        uses: actions/cache@v4
+        with:
+          path: map/thailand.pmtiles
+          key: thailand-${{ env.MAP_MAXZOOM }}-${{ env.MAP_BBOX }}-${{ steps.stamp.outputs.month }}
+
+      - name: Install pmtiles CLI
+        if: steps.mapcache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download -R protomaps/go-pmtiles -p '*Linux_x86_64.tar.gz' -O pmtiles.tgz
+          mkdir -p /tmp/pmtiles && tar xzf pmtiles.tgz -C /tmp/pmtiles && rm pmtiles.tgz
+          sudo install "$(find /tmp/pmtiles -type f -name pmtiles | head -1)" /usr/local/bin/pmtiles
+          pmtiles version || true
+
+      - name: Extract Thailand from the latest Protomaps build
+        if: steps.mapcache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p map
+          SRC=""
+          for i in $(seq 0 14); do
+            D=$(date -u -d "-$i day" +%Y%m%d)
+            if curl -sfI "https://build.protomaps.com/$D.pmtiles" > /dev/null; then
+              SRC="https://build.protomaps.com/$D.pmtiles"; break
+            fi
+          done
+          if [ -z "$SRC" ]; then echo "No Protomaps build found in the last 15 days"; exit 1; fi
+          echo "Source: $SRC"
+          pmtiles extract "$SRC" map/thailand.pmtiles --bbox="$MAP_BBOX" --maxzoom="$MAP_MAXZOOM"
+
+      - name: Report map size
+        run: |
+          ls -lh map/thailand.pmtiles
+          echo "### Offline map: $(du -h map/thailand.pmtiles | cut -f1) (maxzoom $MAP_MAXZOOM)" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
