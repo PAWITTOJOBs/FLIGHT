@@ -1244,7 +1244,9 @@ function parseOneNotam(raw){
   var vert=[];
   if(fTxt||gTxt)vert.push('F) '+fTxt+'  G) '+gTxt);
   else if(limits&&limits!=='-')vert.push('Q-line: '+limits+' (FL)');
-  return {id:id,title:(poly?'POLYGON ('+poly.length+' pts)':(circ?'CIRCLE':'Q-LINE CIRCLE'))+(approx?' (approx. from Q-line)':''),
+  var head=(eTxt||'').split(/\d{2,6}(?:\.\d+)?\s*[NS]\s*\d{3,7}/i)[0].replace(/\s+/g,' ').replace(/[\s\-:,;(]+$/,'').trim();
+  if(head.length>90)head=head.slice(0,87)+'...';
+  return {id:id,title:(head||'NOTAM')+(approx?' (approx. from Q-line)':''),
           lat:lat,lng:lng,radiusNM:rNM,poly:poly,text:raw,
           vertical:vert.join(''),period:(bTxt||cTxt)?('B) '+bTxt+'  C) '+cTxt+(dTxt?'  D) '+dTxt:'')):''};
 }
@@ -1318,11 +1320,21 @@ document.getElementById('btnNotamExample').onclick=function(){document.getElemen
 document.getElementById('btnParseNotam').onclick=function(){
   var raw=document.getElementById('rawNotam').value.trim();
   if(!raw){alert('กรุณาวางข้อความ NOTAM');return;}
-  var added=[],failed=0;
+  var added=[],failed=0,dups=[];
+  var norm=function(t){return t.toUpperCase().replace(/[\s()]+/g,'');};
   splitNotams(raw).forEach(function(chunk){
     var n=parseOneNotam(chunk);
-    if(n){n.uid=++notamUid;NOTAM_DB.push(n);added.push(n);}else failed++;
+    if(!n){failed++;return;}
+    var dup=NOTAM_DB.some(function(x){
+      return norm(x.text)===norm(n.text)||(n.id!=='CUSTOM-NOTAM'&&x.id===n.id);
+    });
+    if(dup){dups.push(n.id);return;}
+    n.uid=++notamUid;NOTAM_DB.push(n);added.push(n);
   });
+  if(dups.length&&!added.length&&!failed){
+    alert('NOTAM นี้ถูกนำเข้าแล้ว ('+dups.join(', ')+') — ไม่ลงซ้ำ');
+    return;
+  }
   if(!added.length){
     alert('อ่านพิกัดไม่ได้ — ต้องมี Q-line (…/DDMM[N|S]DDDMM[E|W]RRR) หรือพิกัดใน E) เช่น 144705N1033019E');
     return;
@@ -1332,7 +1344,7 @@ document.getElementById('btnParseNotam').onclick=function(){
   updateRouteNotams();
   var b=L.latLngBounds(added.map(function(n){return n.poly?L.latLngBounds(n.poly):L.latLng(n.lat,n.lng).toBounds(Math.max(.2,n.radiusNM)*3704);}).reduce(function(a,c){return a.extend(c);}));
   map.fitBounds(b.pad(.15),{maxZoom:11});
-  if(failed)alert('นำเข้า '+added.length+' รายการ, อ่านไม่ได้ '+failed+' รายการ');
+  if(failed||dups.length)alert('นำเข้า '+added.length+' รายการ'+(dups.length?'\nซ้ำ (ข้าม): '+dups.join(', '):'')+(failed?'\nอ่านไม่ได้: '+failed+' รายการ':''));
   document.getElementById('rawNotam').value='';
 };
 
