@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>FLIGHT-PLANNER</title>
+<title>แผนที่วางแผนการบิน — AIP Thailand</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -401,6 +401,71 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 .wp-edit-mode{display:none}
 .wp-edit-mode.on{display:block}
 
+
+/* GPS */
+.gps-dot{
+  width:16px;height:16px;border-radius:50%;
+  background:#4aa8ff;border:3px solid #fff;
+  box-shadow:0 0 0 3px rgba(74,168,255,.28),0 1px 6px rgba(0,0,0,.6);
+}
+.gps-label{
+  background:rgba(47,51,56,.92);
+  color:#dff1ff;
+  border:1px solid #4aa8ff;
+  border-radius:4px;
+  padding:2px 5px;
+  font:600 10px var(--mono);
+  white-space:nowrap;
+}
+
+/* Scale ruler */
+.leaflet-control-scale{
+  margin-left:12px!important;
+  margin-bottom:12px!important;
+}
+.leaflet-control-scale-line{
+  background:rgba(245,245,245,.9)!important;
+  color:#1b1d20!important;
+  border:2px solid #1b1d20!important;
+  border-top:none!important;
+  font:600 11px var(--mono)!important;
+  line-height:1.25!important;
+  padding:3px 6px!important;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);
+}
+
+/* Independent ruler */
+.measure-pin{
+  width:22px;height:22px;border-radius:50%;
+  background:#ffffff;color:#222;
+  border:2px solid #f5b335;
+  text-align:center;
+  font:700 11px/18px var(--mono);
+  box-shadow:0 1px 6px rgba(0,0,0,.5);
+}
+.measure-label{
+  background:rgba(47,51,56,.94);
+  color:#fff;
+  border:1px solid #f5b335;
+  border-radius:4px;
+  padding:3px 6px;
+  font:600 10px var(--mono);
+  white-space:nowrap;
+  width:auto!important;height:auto!important;
+  transform:translate(-50%,-50%);
+}
+.actions{flex-wrap:wrap}
+.actions button{
+  flex:1 1 calc(33.333% - 8px);
+  min-width:92px;
+}
+.actions button.active{
+  background:var(--cyan);
+  color:#04202a;
+  border-color:var(--cyan);
+  font-weight:600;
+}
+
 </style>
 </head>
 <body>
@@ -520,9 +585,12 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 </section>
 
 <div class="actions">
-  <button id="undo">ย้อนกลับ</button>
-  <button id="clear">ล้างเส้นทาง</button>
-  <button id="wBtn" type="button">Windy</button>
+  <button id="undo">BACK</button>
+  <button id="clear">CLEAR ROUTE</button>
+  <button id="gpsBtn" type="button">GPS</button>
+  <button id="measureBtn" type="button">RULER</button>
+  <button id="exportKmz" type="button">EXPORT KMZ</button>
+  <button id="wBtn" type="button">WINDY</button>
 </div>
 
 </aside>
@@ -537,6 +605,7 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 (function(){
 'use strict';
@@ -641,15 +710,18 @@ var topo=L.tileLayer('https://tile.opentopomap.org/{z}/{x}/{y}.png',{
 var map=L.map('map',{center:[13.5,101],zoom:6,layers:[sat],worldCopyJump:true});
 var provLayer=L.layerGroup().addTo(map);
 var aptLayer=L.layerGroup().addTo(map);
-var prohibLayer=L.layerGroup().addTo(map);
-var restrictLayer=L.layerGroup().addTo(map);
-var dangerLayer=L.layerGroup().addTo(map);
-var notamLayer=L.layerGroup().addTo(map);
+var prohibLayer=L.layerGroup();
+var restrictLayer=L.layerGroup();
+var dangerLayer=L.layerGroup();
+var notamLayer=L.layerGroup();
 var lightRptLayer=L.layerGroup();
 var heliRptLayer=L.layerGroup();
 var lineLayer=L.layerGroup().addTo(map);
 var markerLayer=L.layerGroup().addTo(map);
 var elevHoverLayer=L.layerGroup().addTo(map);
+var gpsLayer=L.layerGroup().addTo(map);
+var measureLayer=L.layerGroup().addTo(map);
+var measureActive=false, measurePts=[];
 
 var provPane=map.createPane('prov');
 provPane.style.zIndex=350;
@@ -1197,7 +1269,7 @@ L.control.layers(
    '<span style="color:#ff6b6b;font-weight:600">Imported NOTAM</span>':notamLayer
  }
 ).addTo(map);
-L.control.scale({imperial:false,metric:true}).addTo(map);
+L.control.scale({position:'bottomleft',imperial:false,metric:true,maxWidth:180}).addTo(map);
 
 var elevCache={};
 function legKey(a,b){
@@ -1715,8 +1787,197 @@ function refresh(){
   updateRouteNotams();
 }
 
+
+function locateCurrentPosition(centerMap){
+  if(!navigator.geolocation){
+    if(centerMap)alert('Geolocation is not supported by this browser.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat=pos.coords.latitude;
+    var lng=pos.coords.longitude;
+    var acc=pos.coords.accuracy||0;
+
+    gpsLayer.clearLayers();
+
+    if(acc>0){
+      L.circle([lat,lng],{
+        radius:acc,
+        color:'#4aa8ff',
+        weight:1,
+        fillColor:'#4aa8ff',
+        fillOpacity:.08,
+        interactive:false
+      }).addTo(gpsLayer);
+    }
+
+    var gpsMarker=L.marker([lat,lng],{
+      icon:L.divIcon({
+        className:'',
+        html:'<div class="gps-dot"></div>',
+        iconSize:[16,16],
+        iconAnchor:[8,8]
+      })
+    }).addTo(gpsLayer);
+
+    gpsMarker.bindTooltip(
+      '<span class="gps-label">CURRENT GPS<br>'+esc(formatDDM(lat,true))+' / '+esc(formatDDM(lng,false))+
+      (acc?'<br>± '+Math.round(acc)+' m':'')+'</span>',
+      {direction:'top',offset:[0,-9]}
+    );
+
+    if(centerMap)map.flyTo([lat,lng],Math.max(map.getZoom(),13));
+  },function(err){
+    if(centerMap){
+      var msg='Unable to get current GPS position.';
+      if(err && err.code===1)msg+=' Location permission was denied.';
+      alert(msg);
+    }
+  },{
+    enableHighAccuracy:true,
+    timeout:10000,
+    maximumAge:15000
+  });
+}
+
+function clearMeasurement(){
+  measureLayer.clearLayers();
+  measurePts=[];
+}
+
+function drawMeasurement(){
+  measureLayer.clearLayers();
+  if(!measurePts.length)return;
+
+  measurePts.forEach(function(p,i){
+    L.marker([p.lat,p.lng],{
+      icon:L.divIcon({
+        className:'',
+        html:'<div class="measure-pin">'+(i===0?'A':'B')+'</div>',
+        iconSize:[22,22],iconAnchor:[11,11]
+      })
+    }).addTo(measureLayer);
+  });
+
+  if(measurePts.length<2)return;
+
+  var a=measurePts[0],b=measurePts[1];
+  var d=dist(a,b),hdg=course(a,b),path=arc(a,b),mid=path[Math.floor(path.length/2)];
+  L.polyline(path,{color:'#ffffff',weight:2,dashArray:'6 5',opacity:.95,interactive:false}).addTo(measureLayer);
+  L.marker(mid,{interactive:false,icon:L.divIcon({
+    className:'measure-label',
+    html:fmtD(d)+' '+UL[unit]+' • '+String(Math.round(hdg)%360).padStart(3,'0')+'°'
+  })}).addTo(measureLayer);
+}
+
+function setMeasureMode(on){
+  measureActive=!!on;
+  var btn=document.getElementById('measureBtn');
+  if(btn)btn.classList.toggle('active',measureActive);
+
+  if(measureActive){
+    clearMeasurement();
+    st.textContent='RULER: click first point';
+  }else if(!measurePts.length){
+    st.textContent='Click on map to add waypoint';
+  }
+}
+
+function handleMeasureClick(ll){
+  measurePts.push({lat:ll.lat,lng:ll.lng});
+  drawMeasurement();
+
+  if(measurePts.length===1){
+    st.textContent='RULER: click second point';
+    return;
+  }
+
+  var a=measurePts[0],b=measurePts[1];
+  var d=dist(a,b),hdg=course(a,b);
+  st.textContent='RULER: '+fmtD(d)+' '+UL[unit]+' • HDG '+String(Math.round(hdg)%360).padStart(3,'0')+'°';
+  measureActive=false;
+  var btn=document.getElementById('measureBtn');
+  if(btn)btn.classList.remove('active');
+}
+
+function xmlEsc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&apos;');
+}
+
+function buildRouteKml(){
+  var lineCoords=[];
+
+  for(var i=1;i<pts.length;i++){
+    var seg=arc(pts[i-1],pts[i],Math.max(8,Math.ceil(dist(pts[i-1],pts[i])/5)));
+    seg.forEach(function(x,j){
+      if(i>1 && j===0)return;
+      lineCoords.push((((x[1]+540)%360)-180).toFixed(7)+','+x[0].toFixed(7)+',0');
+    });
+  }
+
+  var placemarks=pts.map(function(p,i){
+    var nm=p.name||('Waypoint '+(i+1));
+    return '<Placemark>'+ 
+      '<name>'+xmlEsc(nm)+'</name>'+ 
+      '<description>'+xmlEsc(formatDDM(p.lat,true)+' / '+formatDDM(p.lng,false))+'</description>'+ 
+      '<Point><coordinates>'+p.lng.toFixed(7)+','+p.lat.toFixed(7)+',0</coordinates></Point>'+ 
+      '</Placemark>';
+  }).join('');
+
+  var routeName=(pts[0].name||'WP1')+' - '+(pts[pts.length-1].name||('WP'+pts.length));
+
+  return '<?xml version="1.0" encoding="UTF-8"?>'+
+    '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>'+ 
+    '<name>'+xmlEsc(routeName)+'</name>'+ 
+    '<Style id="routeStyle"><LineStyle><color>ff35b3f5</color><width>4</width></LineStyle></Style>'+ 
+    placemarks+
+    '<Placemark><name>Flight Route</name><styleUrl>#routeStyle</styleUrl>'+ 
+    '<LineString><tessellate>1</tessellate><altitudeMode>clampToGround</altitudeMode>'+ 
+    '<coordinates>'+lineCoords.join(' ')+'</coordinates></LineString></Placemark>'+ 
+    '</Document></kml>';
+}
+
+function exportRouteKmz(){
+  if(pts.length<2){
+    alert('Add at least two waypoints before exporting KMZ.');
+    return;
+  }
+  if(typeof JSZip==='undefined'){
+    alert('KMZ export library is unavailable. Check your internet connection and reload the page.');
+    return;
+  }
+
+  var zip=new JSZip();
+  zip.file('doc.kml',buildRouteKml());
+
+  zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}}).then(function(blob){
+    var a=document.createElement('a');
+    var url=URL.createObjectURL(blob);
+    var start=(pts[0].name||'START').replace(/[^A-Za-z0-9_-]+/g,'_');
+    var end=(pts[pts.length-1].name||'END').replace(/[^A-Za-z0-9_-]+/g,'_');
+    a.href=url;
+    a.download='Flight_Route_'+start+'_'+end+'.kmz';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  }).catch(function(){
+    alert('Unable to export KMZ.');
+  });
+}
+
 map.on('click',function(e){
   var ll=e.latlng.wrap();
+  if(measureActive){
+    handleMeasureClick(ll);
+    return;
+  }
   addPt(ll.lat,ll.lng,'');
 });
 
@@ -1741,6 +2002,17 @@ document.getElementById('wClose').onclick=function(){
   document.getElementById('windy').classList.remove('on');
   document.getElementById('wFrame').removeAttribute('src');
 };
+
+document.getElementById('gpsBtn').onclick=function(){
+  locateCurrentPosition(true);
+};
+
+document.getElementById('measureBtn').onclick=function(){
+  setMeasureMode(!measureActive);
+};
+
+document.getElementById('exportKmz').onclick=exportRouteKmz;
+
 document.getElementById('undo').onclick=function(){
   if(!pts.length)return;
   pts.pop();refresh();
@@ -1786,6 +2058,7 @@ document.querySelectorAll('.units button').forEach(function(b){
       x.setAttribute('aria-pressed',x===b?'true':'false');
     });
     drawLines();
+    if(measurePts.length)drawMeasurement();
   };
 });
 
@@ -1924,6 +2197,7 @@ document.getElementById('cancelInsertMode').onclick=function(){
 };
 
 refresh();
+setTimeout(function(){locateCurrentPosition(false);},500);
 })();
 </script>
 </body>
