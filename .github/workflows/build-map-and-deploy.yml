@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: map/thailand.pmtiles
-          key: thailand-${{ env.MAP_MAXZOOM }}-${{ env.MAP_BBOX }}-${{ steps.stamp.outputs.month }}
+          key: thailand-z${{ env.MAP_MAXZOOM }}-${{ steps.stamp.outputs.month }}
 
       - name: Install pmtiles CLI
         if: steps.mapcache.outputs.cache-hit != 'true'
