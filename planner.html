@@ -1457,7 +1457,7 @@ L.control.layers(
    '<span style="color:#ff6b6b;font-weight:600">Imported NOTAM</span>':notamLayer
  }
 ).addTo(map);
-enrNavLayer.addTo(map);enrAtsLayer.addTo(map);enrRnavLayer.addTo(map);
+
 function enrGate(){map.getContainer().classList.toggle('enr-zlow',map.getZoom()<8);}
 map.on('zoomend',enrGate);enrGate();
 L.control.scale({position:'bottomleft',imperial:false,metric:true,maxWidth:180}).addTo(map);
