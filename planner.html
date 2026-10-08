@@ -496,7 +496,8 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   <div class="units" role="group" aria-label="Distance unit">
     <button data-u="nm" aria-pressed="true">NM</button>
     <button data-u="km" aria-pressed="false">KM</button>
-    <button data-u="mi" aria-pressed="false">Mi</button>
+    <button data-u="m" aria-pressed="false">m</button>
+    <button data-u="ft" aria-pressed="false">Ft</button>
   </div>
 </section>
 
@@ -618,8 +619,12 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 'use strict';
 
 var R_NM=3440.065, rad=Math.PI/180, deg=180/Math.PI;
-var UF={nm:1,km:1.852,mi:1.150779}, UL={nm:'NM',km:'KM',mi:'Mi'};
+var UF={nm:1,km:1.852,m:1852,ft:6076.11549}, UL={nm:'NM',km:'KM',m:'m',ft:'Ft'};
 var unit='nm', pts=[], pendingInsertIndex=null;
+function unitLabel(){
+  return (UL && UL[unit]) ? UL[unit] : 'NM';
+}
+
 
 function esc(s){
   return String(s==null?'':s).replace(/[&<>"]/g,function(c){
@@ -1351,8 +1356,11 @@ function fmtT(h){
   return mm+' Mins';
 }
 function fmtD(nm){
-  var v=nm*UF[unit];
-  return v>=100?v.toFixed(0):v.toFixed(1);
+  if(!isFinite(nm))return '–';
+  var factor=(UF && isFinite(UF[unit])) ? UF[unit] : 1;
+  var v=nm*factor;
+  if(unit==='m'||unit==='ft')return Math.round(v).toLocaleString();
+  return v<10?v.toFixed(1):Math.round(v).toLocaleString();
 }
 function num(id){
   var v=parseFloat(document.getElementById(id).value);
@@ -1479,7 +1487,7 @@ function renderElevationProfile(){
   svg.push('<line class="elev-axis" x1="'+M.l+'" y1="'+M.t+'" x2="'+M.l+'" y2="'+(M.t+PH)+'"/>');
 
   svg.push('<text class="elev-axis-title" x="13" y="'+(M.t+PH/2)+'" text-anchor="middle" transform="rotate(-90 13 '+(M.t+PH/2)+')">Feet (Ft)</text>');
-  svg.push('<text class="elev-axis-title" x="'+(M.l+PW/2)+'" y="'+(H-4)+'" text-anchor="middle">Distance ('+UL[unit]+')</text>');
+  svg.push('<text class="elev-axis-title" x="'+(M.l+PW/2)+'" y="'+(H-4)+'" text-anchor="middle">Distance ('+unitLabel()+')</text>');
   svg.push('<line id="elevHoverLine" class="elev-hover-line" x1="0" y1="'+M.t+'" x2="0" y2="'+(M.t+PH)+'" style="display:none"/>');
   svg.push('<circle id="elevHoverDot" class="elev-hover-dot" cx="0" cy="0" r="4" style="display:none"/>');
   svg.push('</svg>');
@@ -1525,7 +1533,7 @@ function renderElevationProfile(){
 
       var displayDistance=nearest.dNm*UF[unit];
       hoverInfo.innerHTML='Distance '+(displayDistance>=100?displayDistance.toFixed(0):displayDistance.toFixed(1))+
-        ' '+UL[unit]+'<br>Elevation '+nearest.ft.toLocaleString()+' Ft';
+        ' '+unitLabel()+'<br>Elevation '+nearest.ft.toLocaleString()+' Ft';
       hoverInfo.style.display='block';
 
       elevHoverLayer.clearLayers();
@@ -1538,7 +1546,7 @@ function renderElevationProfile(){
       }).addTo(elevHoverLayer);
 
       mm.bindTooltip(
-        'Distance '+(displayDistance>=100?displayDistance.toFixed(0):displayDistance.toFixed(1))+' '+UL[unit]+
+        'Distance '+(displayDistance>=100?displayDistance.toFixed(0):displayDistance.toFixed(1))+' '+unitLabel()+
         '<br>Elevation '+nearest.ft.toLocaleString()+' Ft',
         {permanent:false,direction:'top',offset:[0,-8]}
       ).openTooltip();
@@ -1548,7 +1556,7 @@ function renderElevationProfile(){
   }
 
   if(status){
-    status.textContent='Max '+maxFt.toLocaleString()+' Ft • '+fmtD(totalNm)+' '+UL[unit]+(pending?' • loading…':'');
+    status.textContent='Max '+maxFt.toLocaleString()+' Ft • '+fmtD(totalNm)+' '+unitLabel()+(pending?' • loading…':'');
   }
 }
 
@@ -1593,13 +1601,13 @@ function drawLines(){
     var mid=path[Math.floor(path.length/2)];
     L.marker(mid,{
       interactive:false,
-      icon:L.divIcon({className:'leglabel',html:fmtD(d)+' '+UL[unit]})
+      icon:L.divIcon({className:'leglabel',html:fmtD(d)+' '+unitLabel()})
     }).addTo(lineLayer);
   }
 
   var spd=num('speed'),burn=num('burn'),hrs=spd>0?total/spd:NaN;
   document.getElementById('tDist').textContent=fmtD(total);
-  document.getElementById('tUnit').textContent=UL[unit];
+  document.getElementById('tUnit').textContent=unitLabel();
   document.getElementById('tTime').textContent=pts.length>1?fmtT(hrs):'–';
   document.getElementById('tFuel').textContent=(pts.length>1&&isFinite(hrs))?(hrs*burn).toFixed(0):'–';
   document.getElementById('tElev').textContent=legs.length?(top?top.ft.toLocaleString()+' ft'+(pend?'+':''):(pend?'…':'–')):'–';
@@ -1866,7 +1874,7 @@ function measureText(a,b){
   return {
     d:d,
     hdg:hdg,
-    text:fmtD(d)+' '+UL[unit]+' • '+String(Math.round(hdg)%360).padStart(3,'0')+'°'
+    text:fmtD(d)+' '+unitLabel()+' • '+String(Math.round(hdg)%360).padStart(3,'0')+'°'
   };
 }
 
@@ -1931,7 +1939,8 @@ function updateMeasurementGraphics(){
   if(!measurePts.length)return;
 
   var aMarker=makeMeasureMarker(0,'A');
-  if(aMarker && !aMarker.dragging._draggable._moving){
+  var aMoving=!!(aMarker && aMarker.dragging && aMarker.dragging._draggable && aMarker.dragging._draggable._moving);
+  if(aMarker && !aMoving){
     aMarker.setLatLng([measurePts[0].lat,measurePts[0].lng]);
   }
 
@@ -1953,7 +1962,8 @@ function updateMeasurementGraphics(){
   }
 
   var bMarker=makeMeasureMarker(1,'B');
-  if(bMarker && !bMarker.dragging._draggable._moving){
+  var bMoving=!!(bMarker && bMarker.dragging && bMarker.dragging._draggable && bMarker.dragging._draggable._moving);
+  if(bMarker && !bMoving){
     bMarker.setLatLng([measurePts[1].lat,measurePts[1].lng]);
   }
 
