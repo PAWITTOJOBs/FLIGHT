@@ -22,6 +22,8 @@ env:
   MAP_BBOX: "97.0,5.4,106.0,20.7"
   # Highest zoom stored in the map file (higher = more detail, bigger file)
   MAP_MAXZOOM: "12"
+  # Elevation detail: zoom 10 = about 150 m per sample
+  ELEV_MAXZOOM: "10"
 
 jobs:
   build:
@@ -65,10 +67,83 @@ jobs:
           echo "Source: $SRC"
           pmtiles extract "$SRC" map/thailand.pmtiles --bbox="$MAP_BBOX" --maxzoom="$MAP_MAXZOOM"
 
-      - name: Report map size
+      - name: Reuse elevation file built earlier
+        id: elevcache
+        uses: actions/cache@v4
+        with:
+          path: map/elevation.pmtiles
+          key: elevation-terrarium-z${{ env.ELEV_MAXZOOM }}-v1
+
+      - name: Build elevation file (AWS Terrain Tiles, Terrarium PNG)
+        if: steps.elevcache.outputs.cache-hit != 'true'
         run: |
-          ls -lh map/thailand.pmtiles
+          pip install --quiet pmtiles
+          mkdir -p map
+          python3 - <<'PY'
+          import math, os, time, urllib.request
+          from concurrent.futures import ThreadPoolExecutor
+          from pmtiles.writer import Writer
+          from pmtiles.tile import zxy_to_tileid, TileType, Compression
+
+          W, S, E, N = map(float, os.environ["MAP_BBOX"].split(","))
+          MAXZ = int(os.environ["ELEV_MAXZOOM"])
+
+          def tile_xy(lon, lat, z):
+              n = 2 ** z
+              x = int((lon + 180) / 360 * n)
+              r = math.radians(lat)
+              y = int((1 - math.log(math.tan(r) + 1 / math.cos(r)) / math.pi) / 2 * n)
+              return x, y
+
+          jobs = []
+          for z in range(MAXZ + 1):
+              x1, y1 = tile_xy(W, N, z)
+              x2, y2 = tile_xy(E, S, z)
+              jobs += [(z, x, y) for x in range(x1, x2 + 1) for y in range(y1, y2 + 1)]
+          print("tiles:", len(jobs))
+
+          def fetch(job):
+              z, x, y = job
+              url = f"https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
+              for attempt in range(5):
+                  try:
+                      with urllib.request.urlopen(url, timeout=60) as r:
+                          return job, r.read()
+                  except Exception as e:
+                      last = e
+                      time.sleep(2 * (attempt + 1))
+              raise last
+
+          with ThreadPoolExecutor(16) as ex:
+              tiles = list(ex.map(fetch, jobs))
+          tiles.sort(key=lambda t: zxy_to_tileid(*t[0]))
+
+          with open("map/elevation.pmtiles", "wb") as f:
+              w = Writer(f)
+              for (z, x, y), data in tiles:
+                  w.write_tile(zxy_to_tileid(z, x, y), data)
+              w.finalize(
+                  {
+                      "tile_type": TileType.PNG,
+                      "tile_compression": Compression.NONE,
+                      "min_zoom": 0,
+                      "max_zoom": MAXZ,
+                      "min_lon_e7": int(W * 1e7), "min_lat_e7": int(S * 1e7),
+                      "max_lon_e7": int(E * 1e7), "max_lat_e7": int(N * 1e7),
+                      "center_zoom": 6,
+                      "center_lon_e7": int((W + E) / 2 * 1e7),
+                      "center_lat_e7": int((S + N) / 2 * 1e7),
+                  },
+                  {"name": "Thailand elevation (Terrarium)",
+                   "attribution": "Terrain Tiles: Mapzen / AWS Open Data (SRTM, GMTED, ETOPO1)"},
+              )
+          PY
+
+      - name: Report file sizes
+        run: |
+          ls -lh map/
           echo "### Offline map: $(du -h map/thailand.pmtiles | cut -f1) (maxzoom $MAP_MAXZOOM)" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Elevation: $(du -h map/elevation.pmtiles | cut -f1) (maxzoom $ELEV_MAXZOOM)" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
