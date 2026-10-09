@@ -1426,6 +1426,77 @@ td .wp-delete{
   line-height:1.2;
 }
 
+
+/* OFF-ROUTE editor: 3 controls on one row */
+.wp-edit-tabs.offroute-tabs button{
+  white-space:nowrap;
+  padding:4px 5px;
+  font-size:9px;
+}
+.wp-edit-tabs .offroute-map-edit-btn{
+  background:#59616a;
+  border-color:#737c86;
+  color:#fff;
+}
+.wp-edit-tabs .offroute-map-edit-btn:hover{
+  background:#68727c;
+}
+.offroute-pin.map-edit{
+  background:#f5b335;
+  border-color:#fff2c5;
+  color:#1a1200;
+}
+
+
+/* ROUTE waypoint editor: 3 equal buttons on one line */
+.route-edit-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px;
+}
+.route-edit-actions button{
+  width:100%;
+  min-width:0;
+  margin:0;
+  padding:6px 4px;
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:10px;
+  line-height:1.15;
+}
+.route-edit-add-offroute{
+  background:#626870!important;
+  border-color:#747b84!important;
+  color:#fff!important;
+}
+.route-edit-add-offroute:hover{
+  background:#737a83!important;
+}
+
+
+/* ROUTE editor: LAT/LONG + RADIAL/DME + EDIT ON MAP */
+.wp-edit-tabs.route-tabs button{
+  white-space:nowrap;
+  padding:4px 5px;
+  font-size:9px;
+}
+.wp-edit-tabs .route-map-edit-btn{
+  background:#59616a;
+  border-color:#737c86;
+  color:#fff;
+}
+.wp-edit-tabs .route-map-edit-btn:hover{
+  background:#68727c;
+}
+.pin.route-map-edit{
+  background:#f5b335;
+  border-color:#fff2c5;
+  color:#1a1200;
+}
+
 </style>
 </head>
 <body>
@@ -3390,7 +3461,7 @@ var pmtiles = (() => {
 
 var R_NM=3440.065, rad=Math.PI/180, deg=180/Math.PI;
 var UF={nm:1,km:1.852,m:1852,ft:6076.11549}, UL={nm:'NM',km:'KM',m:'m',ft:'Ft'};
-var unit='nm', pts=[], pendingInsertIndex=null;
+var unit='nm', pts=[], pendingInsertIndex=null, routeMapEditIndex=null, routeMapEditDraft=null;
 function unitLabel(){
   return (UL && UL[unit]) ? UL[unit] : 'NM';
 }
@@ -4202,9 +4273,15 @@ function updateRouteNotams(){
   }).join('');
 }
 
-var st=document.getElementById('status'),lastPlace='',offRoutePts=[];
+var st=document.getElementById('status'),lastPlace='',offRoutePts=[],offRouteMapEditIndex=null,offRouteMapEditDraft=null;
 map.on('mousemove',function(e){
   var l=e.latlng.wrap();
+  if(offRouteMapEditIndex!==null && offRoutePts[offRouteMapEditIndex]){
+    var ep=offRoutePts[offRouteMapEditIndex];
+    st.textContent='EDIT ON MAP: drag '+(ep.name||('OFF '+(offRouteMapEditIndex+1)))+
+      ' | '+formatDDM(l.lat,true)+' / '+formatDDM(l.lng,false);
+    return;
+  }
   st.textContent=formatDDM(l.lat,true)+' / '+formatDDM(l.lng,false)+(lastPlace?' | '+lastPlace:'');
 });
 map.on('zoomend',function(){
@@ -4224,6 +4301,50 @@ function geocode(p){
   }).catch(function(){});
 }
 
+
+
+function getOffRouteEditPoint(index,p){
+  if(offRouteMapEditIndex===index && offRouteMapEditDraft){
+    return {
+      lat:offRouteMapEditDraft.lat,
+      lng:offRouteMapEditDraft.lng,
+      name:p.name||'',
+      place:p.place||'',
+      refIcao:p.refIcao||''
+    };
+  }
+  return p;
+}
+
+function cancelOffRouteMapEdit(){
+  offRouteMapEditIndex=null;
+  offRouteMapEditDraft=null;
+  drawOffRouteMarkers();
+  st.textContent='Click on map to add waypoint';
+}
+
+function nearestAirportForPoint(p){
+  var best=null,bestD=Infinity;
+  AP.forEach(function(a){
+    var d=dist({lat:a[4],lng:a[5]},p);
+    if(d<bestD){bestD=d;best=a;}
+  });
+  return best;
+}
+
+function currentOffRouteRadial(p){
+  var ap=(p.refIcao && APX[p.refIcao]) ? APX[p.refIcao] : nearestAirportForPoint(p);
+  if(!ap)return {icao:'',radial:0,dme:0,ap:null};
+
+  var ref={lat:ap[4],lng:ap[5]};
+  return {
+    icao:ap[0],
+    radial:course(ref,p),
+    dme:dist(ref,p),
+    ap:ap
+  };
+}
+
 function geocodeOffRoute(p){
   fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&accept-language=th&lat='+p.lat+'&lon='+p.lng)
   .then(function(r){return r.json();})
@@ -4237,8 +4358,14 @@ function geocodeOffRoute(p){
   }).catch(function(){});
 }
 
-function addOffRoutePt(lat,lng,name){
-  var p={lat:lat,lng:lng,name:name||'',place:''};
+function addOffRoutePt(lat,lng,name,refIcao){
+  var p={
+    lat:lat,
+    lng:lng,
+    name:name||'',
+    place:'',
+    refIcao:(refIcao||'').toUpperCase()
+  };
   offRoutePts.push(p);
   saveOffRoute();
   drawOffRouteMarkers();
@@ -4246,22 +4373,31 @@ function addOffRoutePt(lat,lng,name){
 }
 
 function openOffRouteEditor(marker,p,index){
+  var editPoint=getOffRouteEditPoint(index,p);
+  var radialInfo=currentOffRouteRadial(editPoint);
+
+  if(!p.refIcao && radialInfo.icao){
+    p.refIcao=radialInfo.icao;
+    saveOffRoute();
+  }
+
   var popupHtml=
     '<div class="wp-editor">'+
       '<h4>Edit OFF-ROUTE Wpt '+(index+1)+'</h4>'+
       '<label>Name<input id="offEditName" type="text" value="'+esc(p.name||'')+'"></label>'+
-      '<div class="wp-edit-tabs">'+
+      '<div class="wp-edit-tabs offroute-tabs">'+
         '<button type="button" id="offEditLatBtn" class="active">LAT / LONG</button>'+
         '<button type="button" id="offEditRadBtn">RADIAL / DME</button>'+
+        '<button type="button" id="offEditMapBtn" class="offroute-map-edit-btn">EDIT ON MAP</button>'+
       '</div>'+
       '<div id="offEditLat" class="wp-edit-mode on">'+
-        '<label>Latitude (DDM)<input id="offEditLatVal" type="text" value="'+esc(formatDDM(p.lat,true))+'"></label>'+
-        '<label>Longitude (DDM)<input id="offEditLngVal" type="text" value="'+esc(formatDDM(p.lng,false))+'"></label>'+
+        '<label>Latitude (DDM)<input id="offEditLatVal" type="text" value="'+esc(formatDDM(editPoint.lat,true))+'"></label>'+
+        '<label>Longitude (DDM)<input id="offEditLngVal" type="text" value="'+esc(formatDDM(editPoint.lng,false))+'"></label>'+
       '</div>'+
       '<div id="offEditRad" class="wp-edit-mode">'+
-        '<label>Reference Airport (ICAO)<input id="offEditRefIcao" type="text" placeholder="VTBD"></label>'+
-        '<label>Radial (°)<input id="offEditRadial" type="number" min="0" max="359.9" step="0.1" placeholder="090"></label>'+
-        '<label>DME (NM)<input id="offEditDme" type="number" min="0" step="0.1" placeholder="10"></label>'+
+        '<label>Reference Airport (ICAO)<input id="offEditRefIcao" type="text" value="'+esc(radialInfo.icao)+'" placeholder="VTBD"></label>'+
+        '<label>Radial (°)<input id="offEditRadial" type="number" min="0" max="359.9" step="0.1" value="'+radialInfo.radial.toFixed(1)+'"></label>'+
+        '<label>DME (NM)<input id="offEditDme" type="number" min="0" step="0.1" value="'+radialInfo.dme.toFixed(1)+'"></label>'+
       '</div>'+
       '<div class="wp-editor-actions offroute-edit-actions">'+
         '<button type="button" class="offroute-save" id="offEditSave">Save</button>'+
@@ -4277,11 +4413,21 @@ function openOffRouteEditor(marker,p,index){
     var root=e.popup.getElement();
     if(!root)return;
     var mode='latlon';
+    var committed=false;
+    var launchingMapEdit=false;
 
     var latBtn=root.querySelector('#offEditLatBtn');
     var radBtn=root.querySelector('#offEditRadBtn');
+    var mapBtn=root.querySelector('#offEditMapBtn');
     var latBox=root.querySelector('#offEditLat');
     var radBox=root.querySelector('#offEditRad');
+    var refInput=root.querySelector('#offEditRefIcao');
+    var radialInput=root.querySelector('#offEditRadial');
+    var dmeInput=root.querySelector('#offEditDme');
+
+    function currentDraftPoint(){
+      return getOffRouteEditPoint(index,p);
+    }
 
     function setMode(next){
       mode=next;
@@ -4291,14 +4437,55 @@ function openOffRouteEditor(marker,p,index){
       latBox.classList.toggle('on',isLat);
       radBox.classList.toggle('on',!isLat);
     }
+
+    function refreshRadialFromRef(){
+      var icao=refInput.value.trim().toUpperCase();
+      var ap=APX[icao];
+      if(!ap)return;
+      var ep=currentDraftPoint();
+      var ref={lat:ap[4],lng:ap[5]};
+      radialInput.value=course(ref,ep).toFixed(1);
+      dmeInput.value=dist(ref,ep).toFixed(1);
+    }
+
     latBtn.onclick=function(){setMode('latlon');};
-    radBtn.onclick=function(){setMode('radial');};
+    radBtn.onclick=function(){
+      setMode('radial');
+      refreshRadialFromRef();
+    };
+
+    refInput.addEventListener('change',refreshRadialFromRef);
+    refInput.addEventListener('blur',refreshRadialFromRef);
+
+    mapBtn.onclick=function(){
+      if(measureActive)setMeasureMode(false);
+
+      var ep=currentDraftPoint();
+      offRouteMapEditIndex=index;
+      offRouteMapEditDraft={lat:ep.lat,lng:ep.lng};
+
+      launchingMapEdit=true;
+      map.closePopup();
+      drawOffRouteMarkers();
+
+      st.textContent='EDIT ON MAP: drag '+(p.name||('OFF '+(index+1)))+
+        ' • press Save to confirm';
+    };
 
     root.querySelector('#offEditSave').onclick=function(){
       var name=root.querySelector('#offEditName').value.trim();
       var lat,lng;
 
-      if(mode==='latlon'){
+      if(offRouteMapEditIndex===index && offRouteMapEditDraft){
+        // EDIT ON MAP draft has priority. Only Save commits it.
+        lat=offRouteMapEditDraft.lat;
+        lng=offRouteMapEditDraft.lng;
+
+        // Keep the current reference airport if present; the radial values will
+        // be recalculated from the new committed position next time Edit opens.
+        var draftIcao=refInput.value.trim().toUpperCase();
+        if(draftIcao && APX[draftIcao])p.refIcao=draftIcao;
+      }else if(mode==='latlon'){
         lat=parseCoordInput(root.querySelector('#offEditLatVal').value,true);
         lng=parseCoordInput(root.querySelector('#offEditLngVal').value,false);
         if(!isFinite(lat)||!isFinite(lng)){
@@ -4306,10 +4493,10 @@ function openOffRouteEditor(marker,p,index){
           return;
         }
       }else{
-        var icao=root.querySelector('#offEditRefIcao').value.trim().toUpperCase();
+        var icao=refInput.value.trim().toUpperCase();
         var ap=APX[icao];
-        var radial=parseFloat(root.querySelector('#offEditRadial').value);
-        var dme=parseFloat(root.querySelector('#offEditDme').value);
+        var radial=parseFloat(radialInput.value);
+        var dme=parseFloat(dmeInput.value);
 
         if(!ap){alert('Reference airport ICAO not found in database');return;}
         if(!isFinite(radial)||radial<0||radial>=360){alert('Radial must be between 0 and 359.9 degrees');return;}
@@ -4317,30 +4504,53 @@ function openOffRouteEditor(marker,p,index){
 
         var rp=waypointFromRadialDme(ap[4],ap[5],radial,dme);
         lat=rp[0];lng=rp[1];
+        p.refIcao=icao;
         if(!name)name=icao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
       }
 
-      p.name=name;p.lat=lat;p.lng=lng;p.place='';
+      committed=true;
+      p.name=name;
+      p.lat=lat;
+      p.lng=lng;
+      p.place='';
+
+      offRouteMapEditIndex=null;
+      offRouteMapEditDraft=null;
+
       saveOffRoute();
       map.closePopup();
       drawOffRouteMarkers();
       geocodeOffRoute(p);
+      st.textContent='OFF-ROUTE Wpt saved';
     };
 
     var addRouteBtn=root.querySelector('#offAddRoute');
     if(addRouteBtn){
       addRouteBtn.onclick=function(){
-        addPt(p.lat,p.lng,p.name||('OFF '+(index+1)));
+        var ep=currentDraftPoint();
+        addPt(ep.lat,ep.lng,p.name||('OFF '+(index+1)),p.refIcao||'');
         map.closePopup();
       };
     }
 
     root.querySelector('#offEditDelete').onclick=function(){
+      committed=true;
       offRoutePts.splice(index,1);
+      offRouteMapEditIndex=null;
+      offRouteMapEditDraft=null;
       saveOffRoute();
       map.closePopup();
       drawOffRouteMarkers();
     };
+
+    // If a temporary map move exists and the editor is closed without Save,
+    // discard it and restore the original stored position.
+    marker.once('popupclose',function(){
+      if(launchingMapEdit)return;
+      if(!committed && offRouteMapEditIndex===index && offRouteMapEditDraft){
+        cancelOffRouteMapEdit();
+      }
+    });
   });
 
   marker.openPopup();
@@ -4351,21 +4561,56 @@ function drawOffRouteMarkers(){
 
   offRoutePts.forEach(function(p,i){
     var label=p.name||('OFF '+(i+1));
-    var m=L.marker([p.lat,p.lng],{
-      draggable:false,
+    var isMapEdit=offRouteMapEditIndex===i;
+    var displayPoint=getOffRouteEditPoint(i,p);
+
+    var m=L.marker([displayPoint.lat,displayPoint.lng],{
+      draggable:isMapEdit,
+      autoPan:isMapEdit,
       icon:L.divIcon({
         className:'',
-        html:'<div class="offroute-pin">'+esc(label)+'</div>',
+        html:'<div class="offroute-pin'+(isMapEdit?' map-edit':'')+'">'+esc(label)+'</div>',
         iconSize:null,
         iconAnchor:[15,12]
       })
     });
 
-    m.bindTooltip('<span class="offroute-tooltip">'+esc(label)+'</span>',{
-      direction:'top',
-      offset:[0,-10]
-    });
-m.on('click',function(){
+    m.bindTooltip(
+      '<span class="offroute-tooltip">'+esc(label)+
+      (isMapEdit?'<br>DRAG TO MOVE • Save to confirm':'')+
+      '</span>',
+      {direction:'top',offset:[0,-10]}
+    );
+
+    if(isMapEdit){
+      m.on('drag',function(e){
+        var ll=e.target.getLatLng().wrap();
+        if(!offRouteMapEditDraft)offRouteMapEditDraft={lat:p.lat,lng:p.lng};
+        offRouteMapEditDraft.lat=ll.lat;
+        offRouteMapEditDraft.lng=ll.lng;
+        st.textContent='EDIT ON MAP: '+formatDDM(ll.lat,true)+' / '+formatDDM(ll.lng,false)+
+          ' • press Save to confirm';
+      });
+
+      m.on('dragend',function(e){
+        var ll=e.target.getLatLng().wrap();
+        if(!offRouteMapEditDraft)offRouteMapEditDraft={lat:p.lat,lng:p.lng};
+        offRouteMapEditDraft.lat=ll.lat;
+        offRouteMapEditDraft.lng=ll.lng;
+
+        // Do NOT save here. Re-open the editor at the temporary position.
+        setTimeout(function(){
+          openOffRouteEditor(m,p,i);
+        },0);
+      });
+    }
+
+    m.on('click',function(){
+      if(offRouteMapEditIndex===i){
+        // Open editor to allow Save. No position is committed until Save.
+        openOffRouteEditor(m,p,i);
+        return;
+      }
       openOffRouteEditor(m,p,i);
     });
 
@@ -4373,8 +4618,14 @@ m.on('click',function(){
   });
 }
 
-function addPt(lat,lng,name){
-  var p={lat:lat,lng:lng,name:name||'',place:''};
+function addPt(lat,lng,name,refIcao){
+  var p={
+    lat:lat,
+    lng:lng,
+    name:name||'',
+    place:'',
+    refIcao:(refIcao||'').toUpperCase()
+  };
 
   if(pendingInsertIndex!==null){
     var idx=Math.max(0,Math.min(pendingInsertIndex,pts.length));
@@ -4885,27 +5136,71 @@ function drawLines(){
   renderElevationProfile();
 }
 
+
+function getRouteEditPoint(index,p){
+  if(routeMapEditIndex===index && routeMapEditDraft){
+    return {
+      lat:routeMapEditDraft.lat,
+      lng:routeMapEditDraft.lng,
+      name:p.name||'',
+      place:p.place||''
+    };
+  }
+  return p;
+}
+
+function cancelRouteMapEdit(index){
+  if(routeMapEditIndex!==index)return;
+  routeMapEditIndex=null;
+  routeMapEditDraft=null;
+  refresh();
+  st.textContent='Click on map to add waypoint';
+}
+
+
+function currentRouteRadial(index,p){
+  var ep=getRouteEditPoint(index,p);
+  var ap=(p.refIcao && APX[p.refIcao]) ? APX[p.refIcao] : nearestAirportForPoint(ep);
+
+  if(!ap){
+    return {icao:'',radial:0,dme:0,ap:null};
+  }
+
+  var ref={lat:ap[4],lng:ap[5]};
+  return {
+    icao:ap[0],
+    radial:course(ref,ep),
+    dme:dist(ref,ep),
+    ap:ap
+  };
+}
+
 function openWaypointEditor(marker,p,index){
+  var editPoint=getRouteEditPoint(index,p);
+  var radialInfo=currentRouteRadial(index,p);
+
   var popupHtml=
     '<div class="wp-editor">'+
       '<h4>Edit Waypoint '+(index+1)+'</h4>'+
       '<label>Name<input id="editWpName" type="text" value="'+esc(p.name||'')+'"></label>'+
-      '<div class="wp-edit-tabs">'+
+      '<div class="wp-edit-tabs route-tabs">'+
         '<button type="button" id="editModeLatBtn" class="active">LAT / LONG</button>'+
         '<button type="button" id="editModeRadBtn">RADIAL / DME</button>'+
+        '<button type="button" id="editWpMapBtn" class="route-map-edit-btn">EDIT ON MAP</button>'+
       '</div>'+
       '<div id="editModeLat" class="wp-edit-mode on">'+
-        '<label>Latitude (DDM)<input id="editWpLat" type="text" value="'+esc(formatDDM(p.lat,true))+'"></label>'+
-        '<label>Longitude (DDM)<input id="editWpLng" type="text" value="'+esc(formatDDM(p.lng,false))+'"></label>'+
+        '<label>Latitude (DDM)<input id="editWpLat" type="text" value="'+esc(formatDDM(editPoint.lat,true))+'"></label>'+
+        '<label>Longitude (DDM)<input id="editWpLng" type="text" value="'+esc(formatDDM(editPoint.lng,false))+'"></label>'+
       '</div>'+
       '<div id="editModeRad" class="wp-edit-mode">'+
-        '<label>Reference Airport (ICAO)<input id="editWpRefIcao" type="text" placeholder="VTBD"></label>'+
-        '<label>Radial (°)<input id="editWpRadial" type="number" min="0" max="359.9" step="0.1" placeholder="090"></label>'+
-        '<label>DME (NM)<input id="editWpDme" type="number" min="0" step="0.1" placeholder="10"></label>'+
+        '<label>Reference Airport (ICAO)<input id="editWpRefIcao" type="text" value="'+esc(radialInfo.icao)+'" placeholder="VTBD"></label>'+
+        '<label>Radial (°)<input id="editWpRadial" type="number" min="0" max="359.9" step="0.1" value="'+radialInfo.radial.toFixed(1)+'"></label>'+
+        '<label>DME (NM)<input id="editWpDme" type="number" min="0" step="0.1" value="'+radialInfo.dme.toFixed(1)+'"></label>'+
       '</div>'+
-      '<div class="wp-editor-actions">'+
+      '<div class="wp-editor-actions route-edit-actions">'+
         '<button type="button" class="wp-editor-save" id="editWpSave">Save</button>'+
         '<button type="button" class="wp-editor-delete" id="editWpDelete">Delete</button>'+
+        '<button type="button" class="route-edit-add-offroute" id="editWpAddOffRoute">Add Off-Route</button>'+
       '</div>'+
     '</div>';
 
@@ -4917,12 +5212,45 @@ function openWaypointEditor(marker,p,index){
     if(!root)return;
 
     var mode='latlon';
+    var committed=false;
+    var launchingMapEdit=false;
+
     var latBtn=root.querySelector('#editModeLatBtn');
     var radBtn=root.querySelector('#editModeRadBtn');
+    var mapBtn=root.querySelector('#editWpMapBtn');
     var latBox=root.querySelector('#editModeLat');
     var radBox=root.querySelector('#editModeRad');
     var saveBtn=root.querySelector('#editWpSave');
     var delBtn=root.querySelector('#editWpDelete');
+    var addOffRouteBtn=root.querySelector('#editWpAddOffRoute');
+    var latInput=root.querySelector('#editWpLat');
+    var lngInput=root.querySelector('#editWpLng');
+    var refInput=root.querySelector('#editWpRefIcao');
+    var radialInput=root.querySelector('#editWpRadial');
+    var dmeInput=root.querySelector('#editWpDme');
+
+    function currentRouteEditorPosition(){
+      if(routeMapEditIndex===index && routeMapEditDraft){
+        return {lat:routeMapEditDraft.lat,lng:routeMapEditDraft.lng};
+      }
+
+      var lat=parseCoordInput(latInput.value,true);
+      var lng=parseCoordInput(lngInput.value,false);
+      if(isFinite(lat) && isFinite(lng))return {lat:lat,lng:lng};
+
+      return {lat:p.lat,lng:p.lng};
+    }
+
+    function refreshRouteRadialFromRef(){
+      var icao=refInput.value.trim().toUpperCase();
+      var ap=APX[icao];
+      if(!ap)return;
+
+      var ep=currentRouteEditorPosition();
+      var ref={lat:ap[4],lng:ap[5]};
+      radialInput.value=course(ref,ep).toFixed(1);
+      dmeInput.value=dist(ref,ep).toFixed(1);
+    }
 
     function setEditMode(next){
       mode=next;
@@ -4934,69 +5262,142 @@ function openWaypointEditor(marker,p,index){
     }
 
     if(latBtn)latBtn.onclick=function(){setEditMode('latlon');};
-    if(radBtn)radBtn.onclick=function(){setEditMode('radial');};
+    if(radBtn)radBtn.onclick=function(){
+      setEditMode('radial');
+      refreshRouteRadialFromRef();
+    };
+
+    if(refInput){
+      refInput.addEventListener('change',refreshRouteRadialFromRef);
+      refInput.addEventListener('blur',refreshRouteRadialFromRef);
+    }
+
+    function getRouteEditorPoint(){
+      var name=root.querySelector('#editWpName').value.trim();
+      var lat,lng;
+      var refIcao=refInput.value.trim().toUpperCase();
+      if(refIcao && !APX[refIcao])refIcao='';
+
+      if(routeMapEditIndex===index && routeMapEditDraft){
+        lat=routeMapEditDraft.lat;
+        lng=routeMapEditDraft.lng;
+        return {lat:lat,lng:lng,name:name,refIcao:refIcao};
+      }
+
+      if(mode==='latlon'){
+        lat=parseCoordInput(latInput.value,true);
+        lng=parseCoordInput(lngInput.value,false);
+
+        if(!isFinite(lat)||!isFinite(lng)){
+          alert("Invalid coordinates. Use DDM, e.g. 13°54.750'N / 100°36.400'E");
+          return null;
+        }
+      }else{
+        refIcao=refInput.value.trim().toUpperCase();
+        var ap=APX[refIcao];
+        var radial=parseFloat(root.querySelector('#editWpRadial').value);
+        var dme=parseFloat(root.querySelector('#editWpDme').value);
+
+        if(!ap){
+          alert('Reference airport ICAO not found in database');
+          return null;
+        }
+        if(!isFinite(radial)||radial<0||radial>=360){
+          alert('Radial must be between 0 and 359.9 degrees');
+          return null;
+        }
+        if(!isFinite(dme)||dme<0){
+          alert('DME must be 0 NM or greater');
+          return null;
+        }
+
+        var rp=waypointFromRadialDme(ap[4],ap[5],radial,dme);
+        lat=rp[0];
+        lng=rp[1];
+
+        if(!name){
+          name=refIcao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
+        }
+      }
+
+      return {lat:lat,lng:lng,name:name,refIcao:refIcao};
+    }
+
+    if(mapBtn){
+      mapBtn.onclick=function(){
+        if(measureActive)setMeasureMode(false);
+
+        var ep=getRouteEditPoint(index,p);
+        routeMapEditIndex=index;
+        routeMapEditDraft={lat:ep.lat,lng:ep.lng};
+
+        launchingMapEdit=true;
+        map.closePopup();
+        drawMarkers();
+
+        st.textContent='EDIT ON MAP: drag ROUTE Wpt '+(index+1)+' • press Save to confirm';
+      };
+    }
 
     if(saveBtn){
       saveBtn.onclick=function(){
-        var name=root.querySelector('#editWpName').value.trim();
-        var lat,lng;
+        var edited=getRouteEditorPoint();
+        if(!edited)return;
 
-        if(mode==='latlon'){
-          lat=parseCoordInput(root.querySelector('#editWpLat').value,true);
-          lng=parseCoordInput(root.querySelector('#editWpLng').value,false);
-
-          if(!isFinite(lat)||!isFinite(lng)){
-            alert("Invalid coordinates. Use DDM, e.g. 13°54.750'N / 100°36.400'E");
-            return;
-          }
-        }else{
-          var icao=root.querySelector('#editWpRefIcao').value.trim().toUpperCase();
-          var ap=APX[icao];
-          var radial=parseFloat(root.querySelector('#editWpRadial').value);
-          var dme=parseFloat(root.querySelector('#editWpDme').value);
-
-          if(!ap){
-            alert('Reference airport ICAO not found in database');
-            return;
-          }
-          if(!isFinite(radial)||radial<0||radial>=360){
-            alert('Radial must be between 0 and 359.9 degrees');
-            return;
-          }
-          if(!isFinite(dme)||dme<0){
-            alert('DME must be 0 NM or greater');
-            return;
-          }
-
-          var rp=waypointFromRadialDme(ap[4],ap[5],radial,dme);
-          lat=rp[0];
-          lng=rp[1];
-
-          if(!name){
-            name=icao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
-          }
-        }
-
-        p.name=name;
-        p.lat=lat;
-        p.lng=lng;
+        committed=true;
+        p.name=edited.name;
+        p.lat=edited.lat;
+        p.lng=edited.lng;
         p.place='';
+        p.refIcao=(edited.refIcao||p.refIcao||'').toUpperCase();
+
+        routeMapEditIndex=null;
+        routeMapEditDraft=null;
 
         map.closePopup();
         refresh();
         geocode(p);
+        st.textContent='ROUTE Wpt saved';
+      };
+    }
+
+    if(addOffRouteBtn){
+      addOffRouteBtn.onclick=function(){
+        var edited=getRouteEditorPoint();
+        if(!edited)return;
+
+        addOffRoutePt(
+          edited.lat,
+          edited.lng,
+          edited.name||p.name||('WP '+(index+1)),
+          edited.refIcao
+        );
       };
     }
 
     if(delBtn){
       delBtn.onclick=function(){
+        committed=true;
         pts.splice(index,1);
         pendingInsertIndex=null;
+        routeMapEditIndex=null;
+        routeMapEditDraft=null;
         updateInsertModeBanner();
         map.closePopup();
         refresh();
       };
     }
+
+    marker.once('popupclose',function(){
+      if(launchingMapEdit)return;
+
+      if(!committed && routeMapEditIndex===index && routeMapEditDraft){
+        routeMapEditIndex=null;
+        routeMapEditDraft=null;
+        refresh();
+        st.textContent='ROUTE Wpt change cancelled';
+      }
+    });
   });
 
   marker.openPopup();
@@ -5004,30 +5405,58 @@ function openWaypointEditor(marker,p,index){
 
 function drawMarkers(){
   markerLayer.clearLayers();
+
   pts.forEach(function(p,i){
-    var m=L.marker([p.lat,p.lng],{
-      draggable:true,
+    var isMapEdit=routeMapEditIndex===i;
+    var displayPoint=getRouteEditPoint(i,p);
+
+    var m=L.marker([displayPoint.lat,displayPoint.lng],{
+      draggable:isMapEdit,
+      autoPan:isMapEdit,
       icon:L.divIcon({
         className:'',
-        html:'<div class="pin'+(i===0?' first':'')+'">'+(i+1)+'</div>',
+        html:'<div class="pin'+(i===0?' first':'')+(isMapEdit?' route-map-edit':'')+'">'+(i+1)+'</div>',
         iconSize:[26,26],iconAnchor:[13,13]
       })
     });
 
-    m.on('drag',function(e){
-      var ll=e.target.getLatLng();
-      p.lat=ll.lat;p.lng=ll.lng;
-      drawLines();
-      updateRouteNotams();
-    });
+    if(isMapEdit){
+      m.bindTooltip(
+        '<span>DRAG TO MOVE<br>Save to confirm</span>',
+        {direction:'top',offset:[0,-10]}
+      );
 
-    m.on('dragend',function(e){
-      var ll=e.target.getLatLng().wrap();
-      p.lat=ll.lat;p.lng=ll.lng;p.place='';
-      drawLines();loadElev();geocode(p);updateRouteNotams();
-    });
+      m.on('drag',function(e){
+        var ll=e.target.getLatLng().wrap();
+
+        if(!routeMapEditDraft){
+          routeMapEditDraft={lat:p.lat,lng:p.lng};
+        }
+        routeMapEditDraft.lat=ll.lat;
+        routeMapEditDraft.lng=ll.lng;
+
+        st.textContent='EDIT ON MAP: '+formatDDM(ll.lat,true)+' / '+formatDDM(ll.lng,false)+
+          ' • press Save to confirm';
+      });
+
+      m.on('dragend',function(e){
+        var ll=e.target.getLatLng().wrap();
+
+        if(!routeMapEditDraft){
+          routeMapEditDraft={lat:p.lat,lng:p.lng};
+        }
+        routeMapEditDraft.lat=ll.lat;
+        routeMapEditDraft.lng=ll.lng;
+
+        // Do not save here. Re-open Edit at the temporary position.
+        setTimeout(function(){
+          openWaypointEditor(m,p,i);
+        },0);
+      });
+    }
 
     m.on('click',function(){
+      // Normal click opens Edit only. Dragging is enabled only by EDIT ON MAP.
       openWaypointEditor(m,p,i);
     });
 
@@ -5348,6 +5777,17 @@ function exportRouteKmz(){
 
 map.on('click',function(e){
   var ll=e.latlng.wrap();
+
+  if(offRouteMapEditIndex!==null){
+    st.textContent='EDIT ON MAP: drag the selected OFF-ROUTE Wpt • press Save to confirm';
+    return;
+  }
+
+  if(routeMapEditIndex!==null){
+    st.textContent='EDIT ON MAP: drag the selected ROUTE Wpt • press Save to confirm';
+    return;
+  }
+
   if(measureActive){
     handleMeasureClick(ll);
     return;
@@ -5407,6 +5847,8 @@ document.getElementById('legs').addEventListener('click',function(e){
       pts.splice(to,0,item);
       elevCache={};
       pendingInsertIndex=null;
+      routeMapEditIndex=null;
+      routeMapEditDraft=null;
       updateInsertModeBanner();
       refresh();
     }
@@ -5423,6 +5865,8 @@ document.getElementById('legs').addEventListener('click',function(e){
   if(del){
     pts.splice(Number(del.getAttribute('data-del')),1);
     pendingInsertIndex=null;
+    routeMapEditIndex=null;
+    routeMapEditDraft=null;
     updateInsertModeBanner();
     refresh();
     return;
@@ -5536,7 +5980,7 @@ document.getElementById('wpAddAirport').onclick=function(){
     return;
   }
 
-  addPt(ap[4],ap[5],ap[0]);
+  addPt(ap[4],ap[5],ap[0],ap[0]);
   map.flyTo([ap[4],ap[5]],Math.max(map.getZoom(),9));
 };
 
@@ -5544,7 +5988,7 @@ document.getElementById('wpAddAirportOffRoute').onclick=function(){
   var q=document.getElementById('wpAirportQuery').value;
   var ap=findAirportByQuery(q);
   if(!ap){alert('Airport not found in database');return;}
-  addOffRoutePt(ap[4],ap[5],ap[0]);
+  addOffRoutePt(ap[4],ap[5],ap[0],ap[0]);
   map.flyTo([ap[4],ap[5]],Math.max(map.getZoom(),9));
 };
 
@@ -5599,7 +6043,7 @@ document.getElementById('wpAddRadial').onclick=function(){
   var defaultName=icao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
   var name=document.getElementById('wpRadialName').value.trim() || defaultName;
 
-  addPt(p[0],p[1],name);
+  addPt(p[0],p[1],name,icao);
   map.flyTo(p,Math.max(map.getZoom(),9));
 };
 
@@ -5621,7 +6065,7 @@ document.getElementById('wpAddRadialOffRoute').onclick=function(){
   var defaultName=icao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
   var name=document.getElementById('wpRadialName').value.trim()||defaultName;
 
-  addOffRoutePt(p[0],p[1],name);
+  addOffRoutePt(p[0],p[1],name,icao);
   map.flyTo(p,Math.max(map.getZoom(),9));
 };
 
@@ -5636,7 +6080,7 @@ function saveOffRoute(){
   try{
     localStorage.setItem(OFFROUTE_KEY,JSON.stringify(
       offRoutePts.map(function(p){
-        return {lat:p.lat,lng:p.lng,name:p.name||'',place:p.place||''};
+        return {lat:p.lat,lng:p.lng,name:p.name||'',place:p.place||'',refIcao:(p.refIcao||'').toUpperCase()};
       })
     ));
   }catch(e){}
@@ -5645,7 +6089,10 @@ function loadOffRoute(){
   try{
     var d=JSON.parse(localStorage.getItem(OFFROUTE_KEY)||'[]');
     if(!Array.isArray(d))return;
-    offRoutePts=d.filter(function(p){return isFinite(p.lat)&&isFinite(p.lng);});
+    offRoutePts=d.filter(function(p){return isFinite(p.lat)&&isFinite(p.lng);}).map(function(p){
+      p.refIcao=(p.refIcao||'').toUpperCase();
+      return p;
+    });
     drawOffRouteMarkers();
   }catch(e){}
 }
@@ -5660,7 +6107,7 @@ function saveRoute(){
       if(ev&&ev.ft!==undefined)elev[k]=ev;
     }
     localStorage.setItem(ROUTE_KEY,JSON.stringify({
-      pts:pts.map(function(p){return {lat:p.lat,lng:p.lng,name:p.name||'',place:p.place||''};}),
+      pts:pts.map(function(p){return {lat:p.lat,lng:p.lng,name:p.name||'',place:p.place||'',refIcao:(p.refIcao||'').toUpperCase()};}),
       speed:document.getElementById('speed').value,
       burn:document.getElementById('burn').value,
       unit:unit,elev:elev
@@ -5671,7 +6118,10 @@ function loadRoute(){
   try{
     var d=JSON.parse(localStorage.getItem(ROUTE_KEY)||'null');
     if(!d||!Array.isArray(d.pts))return;
-    pts=d.pts.filter(function(p){return isFinite(p.lat)&&isFinite(p.lng);});
+    pts=d.pts.filter(function(p){return isFinite(p.lat)&&isFinite(p.lng);}).map(function(p){
+      p.refIcao=(p.refIcao||'').toUpperCase();
+      return p;
+    });
     if(d.speed)document.getElementById('speed').value=d.speed;
     if(d.burn)document.getElementById('burn').value=d.burn;
     if(d.unit&&UF[d.unit]){
