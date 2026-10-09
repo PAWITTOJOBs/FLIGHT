@@ -1382,6 +1382,50 @@ td .wp-delete{
 .wp-row-actions .wp-delete{grid-column:2;grid-row:1}
 .wp-row-actions .insert-wp-mini{grid-column:2;grid-row:2}
 
+
+/* Slightly larger six-button main toolbar; keep 3 buttons per row */
+.actions{
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:7px;
+}
+.actions button{
+  width:96%;
+  justify-self:center;
+  min-width:0;
+  white-space:nowrap;
+  padding:9px 8px;
+  font-size:12px;
+  line-height:1.2;
+}
+
+
+/* Compact waypoint mode tabs: same visual height as Add ROUTE, single line */
+.wp-tabs{
+  gap:5px;
+}
+.wp-tabs button{
+  min-width:0;
+  white-space:nowrap;
+  padding:7px 5px;
+  font-size:11px;
+  line-height:1.2;
+}
+
+/* Main six-button toolbar: slightly larger, still 3 per row */
+.actions{
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:8px;
+}
+.actions button{
+  width:98%;
+  justify-self:center;
+  min-width:0;
+  white-space:nowrap;
+  padding:10px 9px;
+  font-size:12.5px;
+  line-height:1.2;
+}
+
 </style>
 </head>
 <body>
