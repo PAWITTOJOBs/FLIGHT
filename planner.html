@@ -1497,6 +1497,53 @@ td .wp-delete{
   color:#1a1200;
 }
 
+
+/* Portrait layout: map 2/3 of page, control panel 1/3 */
+@media (orientation:portrait){
+  body{
+    flex-direction:column-reverse;
+    min-height:100%;
+    overflow:hidden;
+  }
+
+  #mapwrap{
+    flex:0 0 66.666%;
+    height:66.666%;
+    min-height:0;
+    min-width:0;
+  }
+
+  #panel{
+    flex:0 0 33.334%;
+    width:100%;
+    height:33.334%;
+    min-height:0;
+    border-right:none;
+    border-top:1px solid var(--line);
+    overflow-y:auto;
+  }
+
+  /* Expanded layer selector stays inside the map area and scrolls vertically */
+  .leaflet-control-layers-expanded{
+    max-height:calc(66.666vh - 24px);
+    max-height:calc(66.666dvh - 24px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .leaflet-control-layers-expanded .leaflet-control-layers-list{
+    max-height:calc(66.666vh - 42px);
+    max-height:calc(66.666dvh - 42px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    padding-right:4px;
+  }
+}
+
 </style>
 </head>
 <body>
