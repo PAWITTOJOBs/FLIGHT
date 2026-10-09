@@ -1156,6 +1156,232 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 .offline-actions{display:flex;gap:6px;margin-top:8px}
 .offline-actions button{flex:1}
 .offline-actions button:disabled{opacity:.5;cursor:not-allowed}
+
+.wp-row-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:2px;
+  white-space:nowrap;
+}
+td .wp-move{
+  color:var(--cyan);
+  border:1px solid var(--line);
+  background:var(--panel2);
+  border-radius:4px;
+  width:24px;
+  height:24px;
+  padding:0;
+  line-height:20px;
+  font:700 13px/20px var(--mono);
+}
+td .wp-move:hover:not(:disabled){
+  border-color:var(--cyan);
+  background:#41474f;
+}
+td .wp-move:disabled{
+  opacity:.28;
+  cursor:default;
+}
+td .wp-delete{
+  width:24px;
+  height:24px;
+  padding:0;
+  line-height:20px;
+}
+
+
+/* Scrollable layer control for small/mobile screens */
+.leaflet-control-layers-expanded{
+  max-height:calc(100vh - 24px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Route / Off-route add buttons */
+.wp-add-row{
+  display:flex;
+  gap:7px;
+  align-items:stretch;
+  flex-wrap:wrap;
+}
+.wp-add-row .wp-add{
+  flex:1 1 150px;
+}
+.wp-add.offroute-add{
+  background:#626870;
+  border-color:#747b84;
+  color:#f3f4f6;
+}
+.wp-add.offroute-add:hover{
+  background:#737a83;
+}
+
+/* OFF-ROUTE waypoint markers */
+.offroute-pin{
+  min-width:24px;
+  height:24px;
+  padding:0 4px;
+  border-radius:5px;
+  background:#707780;
+  border:2px solid #e4e7eb;
+  color:#fff;
+  box-shadow:0 1px 5px rgba(0,0,0,.55);
+  text-align:center;
+  font:700 10px/20px var(--mono);
+}
+.offroute-tooltip{
+  background:rgba(55,59,65,.94);
+  color:#f4f5f6;
+  border:1px solid #8a9199;
+  font:600 10px var(--mono);
+}
+
+/* Compact insert control beside previous waypoint name */
+.insert-wp-mini{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:20px;
+  margin-left:5px;
+  padding:0;
+  vertical-align:middle;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:#353a40;
+  color:var(--cyan);
+  font:700 11px/18px var(--mono);
+}
+.insert-wp-mini:hover{
+  border-color:var(--cyan);
+  background:#424850;
+}
+
+
+.wp-add-row{
+  flex-wrap:nowrap;
+}
+.wp-add-row .wp-add{
+  flex:1 1 0;
+  min-width:0;
+  white-space:nowrap;
+  padding:7px 6px;
+  font-size:11px;
+}
+
+
+.offroute-pin{
+  min-width:30px;
+  width:auto;
+  max-width:160px;
+  height:24px;
+  padding:0 6px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:700 10px/20px var(--mono);
+}
+
+
+/* Keep the six main action buttons on one line */
+.actions{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:4px;
+}
+.actions button{
+  flex:1 1 0;
+  min-width:0;
+  white-space:nowrap;
+  padding:6px 4px;
+  font-size:9px;
+  line-height:1.15;
+}
+
+
+/* Main action buttons: 3 per row, compact width, same height feel as Add ROUTE */
+.actions{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:6px;
+}
+.actions button{
+  width:92%;
+  justify-self:center;
+  min-width:0;
+  white-space:nowrap;
+  padding:7px 6px;
+  font-size:11px;
+  line-height:1.2;
+}
+
+
+.offroute-edit-actions{
+  display:flex;
+  gap:6px;
+}
+.offroute-edit-actions button{
+  flex:1 1 0;
+  min-width:0;
+  white-space:nowrap;
+  font-weight:700;
+  border-radius:5px;
+}
+.offroute-save{
+  background:#2e9d57!important;
+  border-color:#38b566!important;
+  color:#fff!important;
+}
+.offroute-delete{
+  background:#b84242!important;
+  border-color:#d15353!important;
+  color:#fff!important;
+}
+.offroute-addroute{
+  background:#f5b335!important;
+  border-color:#f5b335!important;
+  color:#1a1200!important;
+}
+
+
+/* Center Add ROUTE button text */
+.wp-add-row .wp-add,
+.offroute-addroute{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+
+/* Waypoint row controls: ↑ / ↓ vertically, Delete / Insert vertically */
+.wp-row-actions{
+  display:grid;
+  grid-template-columns:24px 24px;
+  grid-template-rows:24px 24px;
+  gap:2px 4px;
+  align-items:center;
+  justify-content:end;
+}
+.wp-row-actions .wp-move,
+.wp-row-actions .wp-delete,
+.wp-row-actions .insert-wp-mini{
+  width:24px;
+  height:24px;
+  margin:0;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+.wp-row-actions .move-up{grid-column:1;grid-row:1}
+.wp-row-actions .move-down{grid-column:1;grid-row:2}
+.wp-row-actions .wp-delete{grid-column:2;grid-row:1}
+.wp-row-actions .insert-wp-mini{grid-column:2;grid-row:2}
+
 </style>
 </head>
 <body>
@@ -1193,7 +1419,7 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
   <button type="button" id="cancelInsertMode">Cancel</button>
 </div>
 <section class="waypoint-input-panel">
-  <h3>Add Waypoint</h3>
+  <h3>FLIGHT ROUTE Waypoint</h3>
   <div class="wp-tabs">
     <button type="button" id="wpTabAirport" aria-pressed="true">AIRPORT</button>
     <button type="button" id="wpTabLatLon" aria-pressed="false">LAT / LONG (DDM)</button>
@@ -1207,7 +1433,10 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
         <datalist id="airportList"></datalist>
       </label>
     </div>
-    <button type="button" class="wp-add" id="wpAddAirport">Add Airport Waypoint</button>
+    <div class="wp-add-row">
+      <button type="button" class="wp-add" id="wpAddAirport">Add ROUTE</button>
+      <button type="button" class="wp-add offroute-add" id="wpAddAirportOffRoute">Add Off-Route Wpt</button>
+    </div>
     <div class="wp-help">Search by ICAO code, airport name, or province from the built-in airport database.</div>
   </div>
 
@@ -1223,7 +1452,10 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
         <input id="wpName" type="text" placeholder="e.g. WP1">
       </label>
     </div>
-    <button type="button" class="wp-add" id="wpAddLatLon">Add Waypoint</button>
+    <div class="wp-add-row">
+      <button type="button" class="wp-add" id="wpAddLatLon">Add ROUTE</button>
+      <button type="button" class="wp-add offroute-add" id="wpAddLatLonOffRoute">Add Off-Route Wpt</button>
+    </div>
     <div class="wp-help">Use Degrees Decimal Minutes (DDM), e.g. 13°54.750'N / 100°36.400'E.</div>
   </div>
 
@@ -1242,12 +1474,24 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
         <input id="wpRadialName" type="text" placeholder="VTBD R090/10">
       </label>
     </div>
-    <button type="button" class="wp-add" id="wpAddRadial">Add Waypoint</button>
+    <div class="wp-add-row">
+      <button type="button" class="wp-add" id="wpAddRadial">Add ROUTE</button>
+      <button type="button" class="wp-add offroute-add" id="wpAddRadialOffRoute">Add Off-Route Wpt</button>
+    </div>
     <div class="wp-help">Uses airport coordinates as the reference point. Radial is measured clockwise from true north for map planning.</div>
   </div>
 </section>
 
 <section class="legs"><div id="legs"></div></section>
+<div class="actions">
+  <button id="undo">BACK</button>
+  <button id="clear">CLEAR ROUTE</button>
+  <button id="gpsBtn" type="button">GPS</button>
+  <button id="measureBtn" type="button">RULER</button>
+  <button id="exportKmz" type="button">EXPORT KMZ</button>
+  <button id="wBtn" type="button">WINDY</button>
+</div>
+
 <section class="elevation-profile">
   <div class="elevation-profile-head">
     <b>Elevation Profile</b>
@@ -1260,7 +1504,7 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 </section>
 
 <section class="notam-input-panel">
-  <label style="font-size:12px;color:var(--cyan);font-weight:600;display:block;margin-bottom:4px">+ นำเข้า NOTAM (ICAO Q-line)</label>
+  <label style="font-size:12px;color:var(--cyan);font-weight:600;display:block;margin-bottom:4px">+ Upload NOTAM (ICAO Q-line)</label>
   <textarea id="rawNotam" placeholder="วาง NOTAM เต็มรูปแบบ (ต้องมี Q) และ/หรือพิกัดใน E) เช่น 144705N1033019E-… ) — กด 'ใส่ตัวอย่าง' เพื่อดูรูปแบบ"></textarea>
   <button type="button" id="btnNotamExample" style="background:transparent;border-color:var(--line);color:var(--mute)">ใส่ตัวอย่าง NOTAM</button>
   <button type="button" id="btnParseNotam">พอร์ตลงแผนที่</button>
@@ -1278,30 +1522,23 @@ td button{padding:0 7px;line-height:22px;color:var(--red);background:none;border
 </section>
 
 <section class="offline-panel">
-  <div class="offline-head"><b>แผนที่ออฟไลน์</b><small id="netStatus">…</small></div>
+  <div class="offline-head"><b>Offine Maps</b><small id="netStatus">…</small></div>
   <div class="offline-info" id="offlineInfo">กำลังตรวจสอบ…</div>
   <div class="offline-bar" id="offlineBar"><div></div></div>
   <div class="offline-actions">
-    <button type="button" id="offlineDl">ดาวน์โหลดแผนที่ลงเครื่อง</button>
+    <button type="button" id="offlineDl">Download Map</button>
     <button type="button" id="offlineDel">ลบ</button>
   </div>
-  <div class="offline-head" style="margin-top:14px"><b>ข้อมูลความสูง + เงาภูเขา</b></div>
+  <div class="offline-head" style="margin-top:14px"><b>Elevation &amp; Terrain Data</b></div>
   <div class="offline-info" id="elevInfo">กำลังตรวจสอบ…</div>
   <div class="offline-bar" id="elevBar"><div></div></div>
   <div class="offline-actions">
-    <button type="button" id="elevDl">ดาวน์โหลดข้อมูลความสูง</button>
+    <button type="button" id="elevDl">Downlaod Terrain</button>
     <button type="button" id="elevDel">ลบ</button>
   </div>
 </section>
 
-<div class="actions">
-  <button id="undo">BACK</button>
-  <button id="clear">CLEAR ROUTE</button>
-  <button id="gpsBtn" type="button">GPS</button>
-  <button id="measureBtn" type="button">RULER</button>
-  <button id="exportKmz" type="button">EXPORT KMZ</button>
-  <button id="wBtn" type="button">WINDY</button>
-</div>
+
 
 </aside>
 
@@ -3228,6 +3465,9 @@ function setOfflineSource(source){
 }
 
 var map=L.map('map',{center:[13.5,101],zoom:6,layers:[sat],worldCopyJump:true});
+var hillshadePane=map.createPane('hillshadeTop');
+hillshadePane.style.zIndex=450;
+hillshadePane.style.pointerEvents='none';
 var provLayer=L.layerGroup().addTo(map);
 var aptLayer=L.layerGroup().addTo(map);
 var prohibLayer=L.layerGroup();
@@ -3238,6 +3478,7 @@ var lightRptLayer=L.layerGroup();
 var heliRptLayer=L.layerGroup();
 var lineLayer=L.layerGroup().addTo(map);
 var markerLayer=L.layerGroup().addTo(map);
+var offRouteLayer=L.layerGroup().addTo(map);
 var elevHoverLayer=L.layerGroup().addTo(map);
 var gpsLayer=L.layerGroup().addTo(map);
 var measureLayer=L.layerGroup().addTo(map);
@@ -3332,6 +3573,7 @@ var AP=[
  ['VTSC','NAW','นราธิวาส','นราธิวาส',6.5232,101.7448,18,''],
  ['VTSY','','เบตง','ยะลา',5.7888,101.1472,738,''],
  ['VTBK','','กำแพงแสน','นครปฐม',dms(14,6,7.23),dms(99,55,2.13),32,'AIP: Nakhon Pathom / Kamphaeng Saen; IFR/VFR; RTAF'],
+['VTBH','','สระพรานนาค','ลพบุรี',dms(14,56,58.02),dms(100,38,34.88),95,'Lop Buri / Sa Pran Nak; military airfield'],
  ['VTBL','','โคกกะเทียม / กองบิน 2','ลพบุรี',dms(14,52,28.7),dms(100,39,48.2),133,
    'AIP: RWY 16/34 2200 m; RWY 05/23 1340 m; ILS CAT I RWY 05']
 ];
@@ -3348,7 +3590,7 @@ AP.forEach(function(a){
     '<div class="ap"><h4>'+esc(a[0])+(a[1]?' / '+esc(a[1]):'')+'</h4>'+
     '<div>'+esc(a[2])+' จ.'+esc(a[3])+
     (a[6]?'<br>AD Elev '+a[6]+' ft':'')+extra+'</div>'+
-    '<button type="button">เพิ่มเป็นจุดบิน</button></div>'
+    '<button type="button">Add ROUTE</button></div>'
   );
   m.on('popupopen',function(e){
     var btn=e.popup.getElement().querySelector('button');
@@ -3596,7 +3838,7 @@ function addReportingPointLayer(data,layer,kind){
       '<b>BKK VOR:</b> '+esc(radial)+'<br>'+
       '<b>Coordinates:</b> '+esc(dmsText(lat,lng))+'<br>'+
       '<span style="color:#8fa8bd">AIP VTBD AD 2.20</span></div>'+
-      '<button type="button" class="rpt-add-btn">เพิ่มเป็นจุดบิน</button></div>'
+      '<button type="button" class="rpt-add-btn">Add ROUTE</button></div>'
     ).addTo(layer)
     .on('popupopen',function(e){
       var btn=e.popup.getElement().querySelector('.rpt-add-btn');
@@ -3916,7 +4158,7 @@ function updateRouteNotams(){
   }).join('');
 }
 
-var st=document.getElementById('status'),lastPlace='';
+var st=document.getElementById('status'),lastPlace='',offRoutePts=[];
 map.on('mousemove',function(e){
   var l=e.latlng.wrap();
   st.textContent=formatDDM(l.lat,true)+' / '+formatDDM(l.lng,false)+(lastPlace?' | '+lastPlace:'');
@@ -3937,6 +4179,156 @@ function geocode(p){
     drawLines();
   }).catch(function(){});
 }
+
+function geocodeOffRoute(p){
+  fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&accept-language=th&lat='+p.lat+'&lon='+p.lng)
+  .then(function(r){return r.json();})
+  .then(function(j){
+    var a=j.address||{};
+    var d=a.county||a.city_district||a.district||a.town||a.city||'';
+    var pv=a.state||a.province||'';
+    p.place=[d,pv].filter(Boolean).join(' ');
+    saveOffRoute();
+    drawOffRouteMarkers();
+  }).catch(function(){});
+}
+
+function addOffRoutePt(lat,lng,name){
+  var p={lat:lat,lng:lng,name:name||'',place:''};
+  offRoutePts.push(p);
+  saveOffRoute();
+  drawOffRouteMarkers();
+  geocodeOffRoute(p);
+}
+
+function openOffRouteEditor(marker,p,index){
+  var popupHtml=
+    '<div class="wp-editor">'+
+      '<h4>Edit OFF-ROUTE Wpt '+(index+1)+'</h4>'+
+      '<label>Name<input id="offEditName" type="text" value="'+esc(p.name||'')+'"></label>'+
+      '<div class="wp-edit-tabs">'+
+        '<button type="button" id="offEditLatBtn" class="active">LAT / LONG</button>'+
+        '<button type="button" id="offEditRadBtn">RADIAL / DME</button>'+
+      '</div>'+
+      '<div id="offEditLat" class="wp-edit-mode on">'+
+        '<label>Latitude (DDM)<input id="offEditLatVal" type="text" value="'+esc(formatDDM(p.lat,true))+'"></label>'+
+        '<label>Longitude (DDM)<input id="offEditLngVal" type="text" value="'+esc(formatDDM(p.lng,false))+'"></label>'+
+      '</div>'+
+      '<div id="offEditRad" class="wp-edit-mode">'+
+        '<label>Reference Airport (ICAO)<input id="offEditRefIcao" type="text" placeholder="VTBD"></label>'+
+        '<label>Radial (°)<input id="offEditRadial" type="number" min="0" max="359.9" step="0.1" placeholder="090"></label>'+
+        '<label>DME (NM)<input id="offEditDme" type="number" min="0" step="0.1" placeholder="10"></label>'+
+      '</div>'+
+      '<div class="wp-editor-actions offroute-edit-actions">'+
+        '<button type="button" class="offroute-save" id="offEditSave">Save</button>'+
+        '<button type="button" class="offroute-delete" id="offEditDelete">Delete</button>'+
+        '<button type="button" class="offroute-addroute" id="offAddRoute">Add ROUTE</button>'+
+      '</div>'+
+    '</div>';
+
+  marker.unbindPopup();
+  marker.bindPopup(popupHtml,{closeButton:true});
+
+  marker.once('popupopen',function(e){
+    var root=e.popup.getElement();
+    if(!root)return;
+    var mode='latlon';
+
+    var latBtn=root.querySelector('#offEditLatBtn');
+    var radBtn=root.querySelector('#offEditRadBtn');
+    var latBox=root.querySelector('#offEditLat');
+    var radBox=root.querySelector('#offEditRad');
+
+    function setMode(next){
+      mode=next;
+      var isLat=mode==='latlon';
+      latBtn.classList.toggle('active',isLat);
+      radBtn.classList.toggle('active',!isLat);
+      latBox.classList.toggle('on',isLat);
+      radBox.classList.toggle('on',!isLat);
+    }
+    latBtn.onclick=function(){setMode('latlon');};
+    radBtn.onclick=function(){setMode('radial');};
+
+    root.querySelector('#offEditSave').onclick=function(){
+      var name=root.querySelector('#offEditName').value.trim();
+      var lat,lng;
+
+      if(mode==='latlon'){
+        lat=parseCoordInput(root.querySelector('#offEditLatVal').value,true);
+        lng=parseCoordInput(root.querySelector('#offEditLngVal').value,false);
+        if(!isFinite(lat)||!isFinite(lng)){
+          alert("Invalid coordinates. Use DDM, e.g. 13°54.750'N / 100°36.400'E");
+          return;
+        }
+      }else{
+        var icao=root.querySelector('#offEditRefIcao').value.trim().toUpperCase();
+        var ap=APX[icao];
+        var radial=parseFloat(root.querySelector('#offEditRadial').value);
+        var dme=parseFloat(root.querySelector('#offEditDme').value);
+
+        if(!ap){alert('Reference airport ICAO not found in database');return;}
+        if(!isFinite(radial)||radial<0||radial>=360){alert('Radial must be between 0 and 359.9 degrees');return;}
+        if(!isFinite(dme)||dme<0){alert('DME must be 0 NM or greater');return;}
+
+        var rp=waypointFromRadialDme(ap[4],ap[5],radial,dme);
+        lat=rp[0];lng=rp[1];
+        if(!name)name=icao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
+      }
+
+      p.name=name;p.lat=lat;p.lng=lng;p.place='';
+      saveOffRoute();
+      map.closePopup();
+      drawOffRouteMarkers();
+      geocodeOffRoute(p);
+    };
+
+    var addRouteBtn=root.querySelector('#offAddRoute');
+    if(addRouteBtn){
+      addRouteBtn.onclick=function(){
+        addPt(p.lat,p.lng,p.name||('OFF '+(index+1)));
+        map.closePopup();
+      };
+    }
+
+    root.querySelector('#offEditDelete').onclick=function(){
+      offRoutePts.splice(index,1);
+      saveOffRoute();
+      map.closePopup();
+      drawOffRouteMarkers();
+    };
+  });
+
+  marker.openPopup();
+}
+
+function drawOffRouteMarkers(){
+  offRouteLayer.clearLayers();
+
+  offRoutePts.forEach(function(p,i){
+    var label=p.name||('OFF '+(i+1));
+    var m=L.marker([p.lat,p.lng],{
+      draggable:false,
+      icon:L.divIcon({
+        className:'',
+        html:'<div class="offroute-pin">'+esc(label)+'</div>',
+        iconSize:null,
+        iconAnchor:[15,12]
+      })
+    });
+
+    m.bindTooltip('<span class="offroute-tooltip">'+esc(label)+'</span>',{
+      direction:'top',
+      offset:[0,-10]
+    });
+m.on('click',function(){
+      openOffRouteEditor(m,p,i);
+    });
+
+    m.addTo(offRouteLayer);
+  });
+}
+
 function addPt(lat,lng,name){
   var p={lat:lat,lng:lng,name:name||'',place:''};
 
@@ -4057,7 +4449,7 @@ var HillshadeLayer=L.GridLayer.extend({
     return tile;
   }
 });
-var hillshadeLayer=new HillshadeLayer({zIndex:5,attribution:'Terrain: Mapzen / AWS Terrain Tiles'});
+var hillshadeLayer=new HillshadeLayer({pane:'hillshadeTop',zIndex:1,attribution:'Terrain: Mapzen / AWS Terrain Tiles'});
 
 function setElevSource(source){
   if(typeof pmtiles==='undefined')return Promise.reject(new Error('lib'));
@@ -4079,16 +4471,17 @@ var enrRnavGroup=L.layerGroup([enrRnavLayer,enrRnavLblLayer]);
 L.control.layers(
  {'ภาพดาวเทียม':sat,'แผนที่ถนน':osm,'ภูมิประเทศ':topo,'แผนที่ออฟไลน์ (OSM)':offlineBase},
  {
+   'เงาภูเขา (Hillshade)':hillshadeLayer,
+   '<span style="color:#d9dde2;font-weight:600">OFF-ROUTE Wpt</span>':offRouteLayer,
    'เส้นจังหวัด':provLayer,
    'สนามบิน':aptLayer,
-   '<span style="color:#72e4f5;font-weight:600">VFR Light Aircraft</span>':lightRptLayer,
-   '<span style="color:#ffd36a;font-weight:600">VFR Helicopter</span>':heliRptLayer,
-   '<b>Airspace</b> <span style="color:#ff1a1a;font-weight:600">VTP</span> · <span style="color:#ff944d;font-weight:600">VTR</span> · <span style="color:#ffcc00;font-weight:600">VTD</span> · <span style="color:#b388ff;font-weight:600">VTTRA</span>':airspaceGroup,
+   '<span style="color:#72e4f5;font-weight:600">VFR BKK Light A/C Wpt</span>':lightRptLayer,
+   '<span style="color:#ffd36a;font-weight:600">VFR BKK Helicopter Wpt</span>':heliRptLayer,
+   '<span style="color:#ff1a1a;font-weight:600">VTP</span> · <span style="color:#ff944d;font-weight:600">VTR</span> · <span style="color:#ffcc00;font-weight:600">VTD</span> · <span style="color:#b388ff;font-weight:600">VTTRA</span>':airspaceGroup,
    '<span style="color:#2f6bff;font-weight:600">ENR ATS Route + Navaids</span>':enrAtsGroup,
-   '<span style="color:#ff2fd6;font-weight:600">ENR RNAV Route + labels (labels zoom 8+)</span>':enrRnavGroup,
-   '<span style="color:#2f6bff;font-weight:600">ENR Waypoints (zoom 8+)</span>':enrWptLayer,
-   '<span style="color:#2f6bff;font-weight:600">ENR ATS labels (zoom 8+)</span>':enrLblLayer,
-   'เงาภูเขา (Hillshade)':hillshadeLayer,
+   '<span style="color:#ff2fd6;font-weight:600">ENR RNAV Route + labels</span>':enrRnavGroup,
+   '<span style="color:#2f6bff;font-weight:600">ENR Waypoints</span>':enrWptLayer,
+   '<span style="color:#2f6bff;font-weight:600">ENR ATS labels</span>':enrLblLayer,
    '<span style="color:#ff6b6b;font-weight:600">Imported NOTAM</span>':notamLayer
  }
 ).addTo(map);
@@ -4430,12 +4823,6 @@ function drawLines(){
   pts.forEach(function(p,i){
     var lg=legs[i-1];
 
-    if(i>0){
-      h+='<tr class="insert-row"><td colspan="6">'+
-        '<button type="button" class="insert-wp-btn" data-insert-wp="'+i+'">+ Insert Waypoint between WP '+i+' and WP '+(i+1)+'</button>'+
-        '</td></tr>';
-    }
-
     h+='<tr><td data-edit-wp="'+i+'" style="cursor:pointer"><span class="dot">'+(i+1)+'</span>'+
       (p.name?'<b>'+esc(p.name)+'</b>':(i===0?'ต้นทาง':''))+
       (p.place?'<div class="pl">'+esc(p.place)+'</div>':'')+'</td>'+
@@ -4443,7 +4830,12 @@ function drawLines(){
       '<td>'+(lg?String(Math.round(lg.c)%360).padStart(3,'0')+'°':'')+'</td>'+
       '<td>'+(lg&&spd>0?fmtT(lg.d/spd):'')+'</td>'+
       '<td>'+(lg?evTxt(lg.ev):'')+'</td>'+
-      '<td><button data-del="'+i+'" aria-label="Delete waypoint '+(i+1)+'">✕</button></td></tr>';
+      '<td><div class="wp-row-actions">'+
+        '<button type="button" class="wp-move move-up" data-move-wp="-1" data-wp-index="'+i+'" aria-label="Move waypoint '+(i+1)+' up" '+(i===0?'disabled':'')+'>↑</button>'+
+        '<button type="button" class="wp-delete" data-del="'+i+'" aria-label="Delete waypoint '+(i+1)+'">✕</button>'+
+        '<button type="button" class="wp-move move-down" data-move-wp="1" data-wp-index="'+i+'" aria-label="Move waypoint '+(i+1)+' down" '+(i===pts.length-1?'disabled':'')+'>↓</button>'+
+        (i<pts.length-1?'<button type="button" class="insert-wp-mini" data-insert-wp="'+(i+1)+'" title="Insert waypoint after WP '+(i+1)+'" aria-label="Insert waypoint after WP '+(i+1)+'">↓+</button>':'')+
+      '</div></td></tr>';
   });
   el.innerHTML=h+'</tbody></table>';
   renderElevationProfile();
@@ -4960,6 +5352,23 @@ document.getElementById('clear').onclick=function(){
 };
 
 document.getElementById('legs').addEventListener('click',function(e){
+  var move=e.target.closest('[data-move-wp]');
+  if(move){
+    var from=Number(move.getAttribute('data-wp-index'));
+    var dir=Number(move.getAttribute('data-move-wp'));
+    var to=from+dir;
+
+    if(from>=0 && from<pts.length && to>=0 && to<pts.length){
+      var item=pts.splice(from,1)[0];
+      pts.splice(to,0,item);
+      elevCache={};
+      pendingInsertIndex=null;
+      updateInsertModeBanner();
+      refresh();
+    }
+    return;
+  }
+
   var insert=e.target.closest('[data-insert-wp]');
   if(insert){
     startInsertWaypoint(Number(insert.getAttribute('data-insert-wp')));
@@ -5087,6 +5496,14 @@ document.getElementById('wpAddAirport').onclick=function(){
   map.flyTo([ap[4],ap[5]],Math.max(map.getZoom(),9));
 };
 
+document.getElementById('wpAddAirportOffRoute').onclick=function(){
+  var q=document.getElementById('wpAirportQuery').value;
+  var ap=findAirportByQuery(q);
+  if(!ap){alert('Airport not found in database');return;}
+  addOffRoutePt(ap[4],ap[5],ap[0]);
+  map.flyTo([ap[4],ap[5]],Math.max(map.getZoom(),9));
+};
+
 document.getElementById('wpAddLatLon').onclick=function(){
   var lat=parseCoordInput(document.getElementById('wpLat').value,true);
   var lng=parseCoordInput(document.getElementById('wpLng').value,false);
@@ -5098,6 +5515,20 @@ document.getElementById('wpAddLatLon').onclick=function(){
   }
 
   addPt(lat,lng,name);
+  map.flyTo([lat,lng],Math.max(map.getZoom(),9));
+};
+
+document.getElementById('wpAddLatLonOffRoute').onclick=function(){
+  var lat=parseCoordInput(document.getElementById('wpLat').value,true);
+  var lng=parseCoordInput(document.getElementById('wpLng').value,false);
+  var name=document.getElementById('wpName').value.trim();
+
+  if(!isFinite(lat)||!isFinite(lng)){
+    alert("Invalid LAT / LONG format. Use DDM, e.g. 13°54.750'N / 100°36.400'E");
+    return;
+  }
+
+  addOffRoutePt(lat,lng,name);
   map.flyTo([lat,lng],Math.max(map.getZoom(),9));
 };
 
@@ -5128,10 +5559,52 @@ document.getElementById('wpAddRadial').onclick=function(){
   map.flyTo(p,Math.max(map.getZoom(),9));
 };
 
+document.getElementById('wpAddRadialOffRoute').onclick=function(){
+  var icao=document.getElementById('wpRefIcao').value.trim().toUpperCase();
+  var ap=APX[icao];
+  if(!ap){alert('Reference airport ICAO not found in database');return;}
+
+  var radial=parseFloat(document.getElementById('wpRadial').value);
+  var dme=parseFloat(document.getElementById('wpDme').value);
+  if(!isFinite(radial)||radial<0||radial>=360){
+    alert('Radial must be between 0 and 359.9 degrees');return;
+  }
+  if(!isFinite(dme)||dme<0){
+    alert('DME must be 0 NM or greater');return;
+  }
+
+  var p=waypointFromRadialDme(ap[4],ap[5],radial,dme);
+  var defaultName=icao+' R'+String(Math.round(radial)).padStart(3,'0')+'/'+dme.toFixed(1);
+  var name=document.getElementById('wpRadialName').value.trim()||defaultName;
+
+  addOffRoutePt(p[0],p[1],name);
+  map.flyTo(p,Math.max(map.getZoom(),9));
+};
+
 document.getElementById('cancelInsertMode').onclick=function(){
   pendingInsertIndex=null;
   updateInsertModeBanner();
 };
+
+/* ---- OFF-ROUTE waypoint persistence ---- */
+var OFFROUTE_KEY='fp-offroute-v1';
+function saveOffRoute(){
+  try{
+    localStorage.setItem(OFFROUTE_KEY,JSON.stringify(
+      offRoutePts.map(function(p){
+        return {lat:p.lat,lng:p.lng,name:p.name||'',place:p.place||''};
+      })
+    ));
+  }catch(e){}
+}
+function loadOffRoute(){
+  try{
+    var d=JSON.parse(localStorage.getItem(OFFROUTE_KEY)||'[]');
+    if(!Array.isArray(d))return;
+    offRoutePts=d.filter(function(p){return isFinite(p.lat)&&isFinite(p.lng);});
+    drawOffRouteMarkers();
+  }catch(e){}
+}
 
 /* ---- Route persistence (localStorage) ---- */
 var ROUTE_KEY='fp-route-v1';
@@ -5189,7 +5662,7 @@ function renderOfflineInfo(msg){
     info.textContent='ยังไม่ได้โหลดแผนที่ลงเครื่อง กดดาวน์โหลดตอนมี Wi-Fi ก่อนออกบิน';
   }
   dl.disabled=offlineState.busy||!navigator.onLine||offlineState.onServer===false;
-  dl.textContent=offlineState.stored?'อัปเดตแผนที่':'ดาวน์โหลดแผนที่ลงเครื่อง';
+  dl.textContent=offlineState.stored?'Update Map':'Download Map';
   del.disabled=offlineState.busy||!offlineState.stored;
 }
 function useStoredOfflineMap(){
@@ -5283,7 +5756,7 @@ function renderElevInfo(msg){
     info.textContent='ยังไม่ได้โหลดข้อมูลความสูงลงเครื่อง กดดาวน์โหลดตอนมี Wi-Fi';
   }
   dl.disabled=elevState.busy||!navigator.onLine||elevState.onServer===false;
-  dl.textContent=elevState.stored?'อัปเดตข้อมูลความสูง':'ดาวน์โหลดข้อมูลความสูง';
+  dl.textContent=elevState.stored?'Update Terrain':'Downlaod Terrain';
   del.disabled=elevState.busy||!elevState.stored;
 }
 function useStoredElev(){
@@ -5356,6 +5829,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){
 }
 
 loadRoute();
+loadOffRoute();
 initOfflineMap();
 initElev();
 refresh();
